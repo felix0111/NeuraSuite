@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32819.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyNNFramework", "EasyNNFramework\EasyNNFramework.csproj", "{37C334B7-D394-4DD1-94E1-91EA2D911B58}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{37C334B7-D394-4DD1-94E1-91EA2D911B58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37C334B7-D394-4DD1-94E1-91EA2D911B58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37C334B7-D394-4DD1-94E1-91EA2D911B58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37C334B7-D394-4DD1-94E1-91EA2D911B58}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F622BF65-2F59-45B7-ACDA-AD37A1703605}
+	EndGlobalSection
+EndGlobal
