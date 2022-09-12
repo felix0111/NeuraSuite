@@ -37,9 +37,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugProgram.cs" />
-    <Compile Include="FFNN.cs" />
+    <Compile Include="FeedForward\FFNN.cs" />
+    <Compile Include="FeedForward\WeightHandler.cs" />
     <Compile Include="NEAT.cs" />
+    <Compile Include="Neuron.cs" />
     <Compile Include="RNN.cs" />
+    <Compile Include="UtilityClass.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
