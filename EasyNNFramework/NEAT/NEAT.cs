@@ -104,7 +104,7 @@ namespace EasyNNFramework {
                     Console.WriteLine("Removing weight between " + lowerLayerNeuron.name + " and " + higherLayerNeuron.name);
                 } else {
                     //add neuron between start and end
-                    Neuron newHidden = new Neuron("hidden" + hiddenNeurons.Count, NeuronType.Hidden,
+                    Neuron newHidden = new Neuron(higherLayerNeuron.getLayer() + "hidden" + hiddenNeurons.Count, NeuronType.Hidden,
                         ActivationFunction.GELU);
                     hiddenNeurons.Add(newHidden);
                     weightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);

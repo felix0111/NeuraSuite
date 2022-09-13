@@ -8,7 +8,7 @@ namespace EasyNNFramework.FeedForward {
     [Serializable]
     internal class WeightHandler {
 
-        private List<KeyValuePair<Neuron, Neuron>> neuronPairs;
+        public List<KeyValuePair<Neuron, Neuron>> neuronPairs;
         private List<float> weightList;
 
         public WeightHandler() {
