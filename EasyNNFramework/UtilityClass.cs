@@ -17,5 +17,9 @@ namespace EasyNNFramework {
                 return (T)formatter.Deserialize(ms);
             }
         }
+
+        public static float InverseLerp(float start, float end, float value) {
+            return (value - start) / (end - start);
+        }
     }
 }

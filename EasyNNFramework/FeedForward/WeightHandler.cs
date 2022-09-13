@@ -16,6 +16,7 @@ namespace EasyNNFramework.FeedForward {
             network = _network;
 
             neuronPairs = new List<KeyValuePair<Neuron, Neuron>>();
+            weightList = new List<float>();
         }
 
         public float getWeight(Neuron startNeuron, Neuron endNeuron) {
@@ -29,7 +30,7 @@ namespace EasyNNFramework.FeedForward {
             throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
         }
 
-        public void setWeight(Neuron startNeuron, Neuron endNeuron, float weight) {
+        public void addWeight(Neuron startNeuron, Neuron endNeuron, float weight) {
             KeyValuePair<Neuron, Neuron> kvp = new KeyValuePair<Neuron, Neuron>(startNeuron, endNeuron);
 
             int index = neuronPairs.IndexOf(kvp);
