@@ -26,7 +26,6 @@ namespace EasyNNFramework.FeedForward {
             }
 
             return 0f;
-            //throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
         }
 
         public void addWeight(Neuron startNeuron, Neuron endNeuron, float weight) {
