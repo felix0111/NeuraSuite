@@ -23,56 +23,24 @@ namespace EasyNNFramework {
             inputs.Add(test2);
             action.Add(testOut1);
             action.Add(testOut2);
+            
+            NEAT neatTest = new NEAT(inputs, action);
 
-            FFNN test = new FFNN(1, inputs, 2, ActivationFunction.TANH, action);
+            test1.value = 2f;
+            test2.value = 1f;
 
-            foreach (Neuron inputNeuron in inputs) {
-                foreach (Neuron firstHiddenNeuron in test.hiddenNeurons[0]) {
-                    test.setWeightBetweenNeurons(inputNeuron, firstHiddenNeuron, 1);
-                }
-            }
+            neatTest.Mutate();
+            neatTest.Mutate();
+            neatTest.Mutate();
+            neatTest.Mutate();
+            neatTest.Mutate();
+            neatTest.Mutate();
+            neatTest.Mutate();
+            neatTest.Mutate();
+            neatTest.calculateNetwork();
 
-            for (int i = 0; i < test.layerCount; i++) {
-                foreach (Neuron neuronStart in test.hiddenNeurons[i]) {
-                    //if at last layer
-                    if (i == test.layerCount - 1) {
-                        foreach (Neuron actionNeuron in action) {
-                            test.setWeightBetweenNeurons(neuronStart, actionNeuron, 1);
-                        }
-                    }
-                    else {
-                        foreach (Neuron neuronEnd in test.hiddenNeurons[i+1]) {
-                            test.setWeightBetweenNeurons(neuronStart, neuronEnd, 1);
-                        }
-                    }
-                }
-            }
-
-            for (int i = 0; i < test.layerCount+2; i++) {
-
-                //if first layer
-                if (i == 0) {
-                    test.setInputNeuronValue(test1, 2);
-                    test.setInputNeuronValue(test2, 2);
-                }
-
-                //if not last layer
-                else if (i != test.layerCount + 1) {
-                    foreach (Neuron hiddenNeuron in test.hiddenNeurons[i-1]) {
-                        test.calculateNeuronValueWithPrevLayer(hiddenNeuron, i-1);
-                    }
-                }
-
-                //if action/last layer
-                else {
-                    foreach (Neuron actionNeuron in test.actionNeurons) {
-                        test.calculateNeuronValueWithPrevLayer(actionNeuron, i-1);
-                    }
-                }
-            }
-
-            Console.WriteLine("TestOut1: " + test.getNeuronValue(testOut1));
-            Console.WriteLine("TestOut2: " + test.getNeuronValue(testOut2));
+            Console.WriteLine("TestOut1: " + testOut1.value);
+            Console.WriteLine("TestOut2: " + testOut2.value);
 
             Console.Read();
         }

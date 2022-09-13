@@ -38,8 +38,8 @@
   <ItemGroup>
     <Compile Include="DebugProgram.cs" />
     <Compile Include="FeedForward\FFNN.cs" />
-    <Compile Include="FeedForward\WeightHandler.cs" />
-    <Compile Include="NEAT.cs" />
+    <Compile Include="WeightHandler.cs" />
+    <Compile Include="NEAT\NEAT.cs" />
     <Compile Include="Neuron.cs" />
     <Compile Include="RNN.cs" />
     <Compile Include="UtilityClass.cs" />

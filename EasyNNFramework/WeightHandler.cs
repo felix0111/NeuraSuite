@@ -5,20 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace EasyNNFramework.FeedForward {
+    [Serializable]
     internal class WeightHandler {
-
-        private FFNN network;
 
         private List<KeyValuePair<Neuron, Neuron>> neuronPairs;
         private List<float> weightList;
 
-        public WeightHandler(FFNN _network) {
-            network = _network;
-
+        public WeightHandler() {
             neuronPairs = new List<KeyValuePair<Neuron, Neuron>>();
             weightList = new List<float>();
         }
 
+        //returns 0 when no weight found
         public float getWeight(Neuron startNeuron, Neuron endNeuron) {
             KeyValuePair<Neuron, Neuron> kvp = new KeyValuePair<Neuron, Neuron>(startNeuron, endNeuron);
 
@@ -26,8 +24,9 @@ namespace EasyNNFramework.FeedForward {
             if (index != -1) {
                 return weightList[index];
             }
-            
-            throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
+
+            return 0f;
+            //throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
         }
 
         public void addWeight(Neuron startNeuron, Neuron endNeuron, float weight) {
@@ -37,6 +36,8 @@ namespace EasyNNFramework.FeedForward {
             if (index == -1) {
                 neuronPairs.Add(kvp);
                 weightList.Add(weight);
+                startNeuron.outgoingConnections.Add(endNeuron);
+                endNeuron.incommingConnections.Add(startNeuron);
             } else {
                 weightList[index] = weight;
             }
@@ -49,6 +50,8 @@ namespace EasyNNFramework.FeedForward {
             if (index != -1) {
                 neuronPairs.RemoveAt(index);
                 weightList.RemoveAt(index);
+                startNeuron.outgoingConnections.Remove(endNeuron);
+                endNeuron.incommingConnections.Remove(endNeuron);
             } else {
                 throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
             }

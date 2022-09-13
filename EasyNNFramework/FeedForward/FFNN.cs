@@ -34,7 +34,7 @@ namespace EasyNNFramework {
                 }
             }
 
-            weightHandler = new WeightHandler(this);
+            weightHandler = new WeightHandler();
 
         }
 

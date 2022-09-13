@@ -21,5 +21,12 @@ namespace EasyNNFramework {
         public static float InverseLerp(float start, float end, float value) {
             return (value - start) / (end - start);
         }
+
+        public static float RandomWeight(Random rnd) {
+            float rndPos = (float) rnd.NextDouble() * 4f;
+            int rndTrue = rnd.Next(0, 2) * 2 - 1;
+
+            return (float)rndTrue * rndPos;
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EasyNNFramework.FeedForward;
 
 namespace EasyNNFramework {
 
@@ -10,6 +11,8 @@ namespace EasyNNFramework {
     internal class Neuron {
         public string name;
         public float value = 0f;
+        public List<Neuron> incommingConnections;
+        public List<Neuron> outgoingConnections;
         public NeuronType type;
         public ActivationFunction function;
 
@@ -17,6 +20,9 @@ namespace EasyNNFramework {
             name = _name;
             type = _type;
             function = _function;
+
+            incommingConnections = new List<Neuron>();
+            outgoingConnections = new List<Neuron>();
         }
 
         public static float getFunctionValue(ActivationFunction _function, float sum) {
@@ -28,6 +34,31 @@ namespace EasyNNFramework {
                 default:
                     return sum;
             }
+        }
+
+        public float calculateValueWithIncomingConnections(WeightHandler handler) {
+            float sum = 0f;
+
+            foreach (Neuron incommingConnection in incommingConnections) {
+                if (incommingConnection.type == NeuronType.Input) {
+                    sum += incommingConnection.value * handler.getWeight(incommingConnection, this);
+                } else {
+                    sum += incommingConnection.calculateValueWithIncomingConnections(handler) * handler.getWeight(incommingConnection, this);
+                }
+            }
+
+            sum = getFunctionValue(function, sum);
+            value = sum;
+
+            return sum;
+        }
+
+        public int getLayer() {
+
+            if (incommingConnections.Count == 0) {
+                return 1;
+            }
+            return incommingConnections[0].getLayer() + 1;
         }
     }
 
