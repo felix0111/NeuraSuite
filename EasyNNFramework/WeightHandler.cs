@@ -47,7 +47,7 @@ namespace EasyNNFramework.FeedForward {
                 neuronPairs.RemoveAt(index);
                 weightList.RemoveAt(index);
                 startNeuron.outgoingConnections.Remove(endNeuron.name);
-                endNeuron.incommingConnections.Remove(endNeuron.name);
+                endNeuron.incommingConnections.Remove(startNeuron.name);
             } else {
                 throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
             }
