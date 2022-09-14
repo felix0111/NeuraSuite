@@ -11,8 +11,7 @@ namespace EasyNNFramework {
     public class Neuron {
         public string name;
         public float value = 0f;
-        public List<Neuron> incommingConnections;
-        public List<Neuron> outgoingConnections;
+        public List<string> incommingConnections, outgoingConnections;
         public NeuronType type;
         public ActivationFunction function;
 
@@ -21,8 +20,8 @@ namespace EasyNNFramework {
             type = _type;
             function = _function;
 
-            incommingConnections = new List<Neuron>();
-            outgoingConnections = new List<Neuron>();
+            incommingConnections = new List<string>();
+            outgoingConnections = new List<string>();
         }
 
         public static float getFunctionValue(ActivationFunction _function, float sum) {
@@ -39,11 +38,13 @@ namespace EasyNNFramework {
         public float calculateValueWithIncomingConnections(WeightHandler handler) {
             float sum = 0f;
 
-            foreach (Neuron incommingConnection in incommingConnections) {
-                if (incommingConnection.type == NeuronType.Input) {
-                    sum += incommingConnection.value * handler.getWeight(incommingConnection, this);
+            foreach (string incommingConnection in incommingConnections) {
+                Neuron focused = handler.network.getNeuronWithName(incommingConnection);
+
+                if (focused.type == NeuronType.Input) {
+                    sum += focused.value * handler.getWeight(focused, this);
                 } else {
-                    sum += incommingConnection.calculateValueWithIncomingConnections(handler) * handler.getWeight(incommingConnection, this);
+                    sum += focused.calculateValueWithIncomingConnections(handler) * handler.getWeight(focused, this);
                 }
             }
 
@@ -53,12 +54,14 @@ namespace EasyNNFramework {
             return sum;
         }
 
-        public int getLayer() {
+        public int getLayer(WeightHandler handler) {
 
             if (incommingConnections.Count == 0) {
                 return 1;
             }
-            return incommingConnections[0].getLayer() + 1;
+
+            Neuron focused = handler.network.getNeuronWithName(incommingConnections[0]);
+            return focused.getLayer(handler) + 1;
         }
     }
 

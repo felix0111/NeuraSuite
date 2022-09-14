@@ -8,12 +8,14 @@ namespace EasyNNFramework.FeedForward {
     [Serializable]
     public class WeightHandler {
 
+        public NEAT network;
         public List<KeyValuePair<Neuron, Neuron>> neuronPairs;
         private List<float> weightList;
 
-        public WeightHandler() {
+        public WeightHandler(NEAT _network) {
             neuronPairs = new List<KeyValuePair<Neuron, Neuron>>();
             weightList = new List<float>();
+            network = _network;
         }
 
         //returns 0 when no weight found
