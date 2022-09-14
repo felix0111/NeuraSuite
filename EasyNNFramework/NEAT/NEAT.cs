@@ -11,6 +11,7 @@ namespace EasyNNFramework {
 
         public WeightHandler weightHandler;
         private Random rnd;
+        private int counter = 0;
 
         public int highestLayer = 2;
 
@@ -83,9 +84,10 @@ namespace EasyNNFramework {
                     weightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
                 } else {
                     //add neuron between start and end
-                    Neuron newHidden = new Neuron(higherLayerNeuron.getLayer(this) + "hidden" + hiddenNeurons.Count, NeuronType.Hidden,
+                    Neuron newHidden = new Neuron(higherLayerNeuron.getLayer(this) + "hidden" + counter, NeuronType.Hidden,
                         ActivationFunction.GELU);
                     hiddenNeurons.Add(newHidden);
+                    counter++;
                     weightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
                     weightHandler.addWeight(lowerLayerNeuron, newHidden, weight);
                     weightHandler.addWeight(newHidden, higherLayerNeuron, 1);
