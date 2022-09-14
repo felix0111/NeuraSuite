@@ -5,7 +5,7 @@ using EasyNNFramework.FeedForward;
 namespace EasyNNFramework {
 
     [Serializable]
-    public class Neuron {
+    public class Neuron : IEquatable<Neuron> {
         public string name;
         public float value = 0f;
         public List<string> incommingConnections, outgoingConnections;
@@ -68,6 +68,15 @@ namespace EasyNNFramework {
                 network.highestLayer = thisLayer+1;
             }
             return thisLayer;
+        }
+
+        public override bool Equals(object obj) {
+            return this.Equals(obj as Neuron);
+        }
+
+        public bool Equals(Neuron obj) {
+            if (obj == null) return false;
+            return obj.name == name;
         }
     }
 
