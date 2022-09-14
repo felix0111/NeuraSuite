@@ -32,16 +32,16 @@ namespace EasyNNFramework {
             }
         }
 
-        public float calculateValueWithIncomingConnections(WeightHandler handler) {
+        public float calculateValueWithIncomingConnections(NEAT network) {
             float sum = 0f;
 
             foreach (string incommingConnection in incommingConnections) {
-                Neuron focused = handler.network.getNeuronWithName(incommingConnection);
+                Neuron focused = network.getNeuronWithName(incommingConnection);
 
                 if (focused.type == NeuronType.Input) {
-                    sum += focused.value * handler.getWeight(focused, this);
+                    sum += focused.value * network.weightHandler.getWeight(focused, this);
                 } else {
-                    sum += focused.calculateValueWithIncomingConnections(handler) * handler.getWeight(focused, this);
+                    sum += focused.calculateValueWithIncomingConnections(network) * network.weightHandler.getWeight(focused, this);
                 }
             }
 
@@ -51,14 +51,14 @@ namespace EasyNNFramework {
             return sum;
         }
 
-        public int getLayer(WeightHandler handler) {
+        public int getLayer(NEAT network) {
 
             if (incommingConnections.Count == 0) {
                 return 1;
             }
 
-            Neuron focused = handler.network.getNeuronWithName(incommingConnections[0]);
-            return focused.getLayer(handler) + 1;
+            Neuron focused = network.getNeuronWithName(incommingConnections[0]);
+            return focused.getLayer(network) + 1;
         }
     }
 

@@ -9,7 +9,6 @@ namespace EasyNNFramework {
         public List<Neuron> inputNeurons, hiddenNeurons, actionNeurons;
 
         public WeightHandler weightHandler;
-        
         private Random rnd;
 
         public NEAT(List<Neuron> _inputNeurons, List<Neuron> _actionNeurons) {
@@ -58,10 +57,10 @@ namespace EasyNNFramework {
             }
 
             Neuron higherLayerNeuron, lowerLayerNeuron;
-            if (rndStart.getLayer(weightHandler) > rndEnd.getLayer(weightHandler)) {
+            if (rndStart.getLayer(this) > rndEnd.getLayer(this)) {
                 higherLayerNeuron = rndStart;
                 lowerLayerNeuron = rndEnd;
-            } else if (rndStart.getLayer(weightHandler) < rndEnd.getLayer(weightHandler)) {
+            } else if (rndStart.getLayer(this) < rndEnd.getLayer(this)) {
                 higherLayerNeuron = rndEnd;
                 lowerLayerNeuron = rndStart;
             } else {
@@ -99,7 +98,7 @@ namespace EasyNNFramework {
                     Console.WriteLine("Removing weight between " + lowerLayerNeuron.name + " and " + higherLayerNeuron.name);
                 } else {
                     //add neuron between start and end
-                    Neuron newHidden = new Neuron(higherLayerNeuron.getLayer(weightHandler) + "hidden" + hiddenNeurons.Count, NeuronType.Hidden,
+                    Neuron newHidden = new Neuron(higherLayerNeuron.getLayer(this) + "hidden" + hiddenNeurons.Count, NeuronType.Hidden,
                         ActivationFunction.GELU);
                     hiddenNeurons.Add(newHidden);
                     weightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
@@ -112,7 +111,7 @@ namespace EasyNNFramework {
 
         public void calculateNetwork() {
             foreach (Neuron actionNeuron in actionNeurons) {
-                actionNeuron.calculateValueWithIncomingConnections(weightHandler);
+                actionNeuron.calculateValueWithIncomingConnections(this);
             }
         }
 
