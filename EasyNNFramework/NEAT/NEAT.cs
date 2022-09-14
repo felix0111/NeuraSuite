@@ -33,9 +33,18 @@ namespace EasyNNFramework {
             }
             Neuron rndAction = actionNeurons[rnd.Next(0, actionNeurons.Count)];
 
-            //remove empty hidden
+            //remove useless hidden
             foreach (Neuron hiddenNeuron in hiddenNeurons) {
                 if (hiddenNeuron.incommingConnections.Count == 0 || hiddenNeuron.outgoingConnections.Count == 0) {
+                    foreach (string incoming in hiddenNeuron.incommingConnections) {
+                        Neuron focused = getNeuronWithName(incoming);
+                        weightHandler.removeWeight(focused, hiddenNeuron);
+                    }
+
+                    foreach (string outgoing in hiddenNeuron.outgoingConnections) {
+                        Neuron focused = getNeuronWithName(outgoing);
+                        weightHandler.removeWeight(hiddenNeuron, focused);
+                    }
                     hiddenNeurons.Remove(hiddenNeuron);
                 }
             }
