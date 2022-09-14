@@ -34,8 +34,8 @@ namespace EasyNNFramework.FeedForward {
             if (index == -1) {
                 neuronPairs.Add(kvp);
                 weightList.Add(weight);
-                startNeuron.outgoingConnections.Add(endNeuron);
-                endNeuron.incommingConnections.Add(startNeuron);
+                startNeuron.outgoingConnections.Add(endNeuron.name);
+                endNeuron.incommingConnections.Add(startNeuron.name);
             } else {
                 weightList[index] = weight;
             }
@@ -48,8 +48,8 @@ namespace EasyNNFramework.FeedForward {
             if (index != -1) {
                 neuronPairs.RemoveAt(index);
                 weightList.RemoveAt(index);
-                startNeuron.outgoingConnections.Remove(endNeuron);
-                endNeuron.incommingConnections.Remove(endNeuron);
+                startNeuron.outgoingConnections.Remove(endNeuron.name);
+                endNeuron.incommingConnections.Remove(endNeuron.name);
             } else {
                 throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
             }
