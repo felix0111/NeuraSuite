@@ -121,5 +121,23 @@ namespace EasyNNFramework {
             }
         }
 
+        public Neuron getNeuronWithName(string name) {
+
+            List<Neuron> neuronList = new List<Neuron>();
+            neuronList.AddRange(hiddenNeurons);
+
+            if (!name.Contains("hidden")) {
+                neuronList.AddRange(inputNeurons);
+                neuronList.AddRange(actionNeurons);
+            }
+
+            foreach (Neuron neuron in neuronList) {
+                if (neuron.name == name) {
+                    return neuron;
+                }
+            }
+
+            return null;
+        }
     }
 }
