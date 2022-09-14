@@ -8,7 +8,7 @@ namespace EasyNNFramework {
 
         public List<Neuron> inputNeurons, hiddenNeurons, actionNeurons;
 
-        private WeightHandler weightHandler;
+        public WeightHandler weightHandler;
         
         private Random rnd;
 

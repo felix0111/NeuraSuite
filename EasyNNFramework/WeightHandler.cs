@@ -7,7 +7,7 @@ namespace EasyNNFramework.FeedForward {
 
         public NEAT network;
         public List<KeyValuePair<Neuron, Neuron>> neuronPairs;
-        private List<float> weightList;
+        public List<float> weightList;
 
         public WeightHandler(NEAT _network) {
             neuronPairs = new List<KeyValuePair<Neuron, Neuron>>();
