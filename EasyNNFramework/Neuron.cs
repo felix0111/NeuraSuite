@@ -53,12 +53,21 @@ namespace EasyNNFramework {
 
         public int getLayer(NEAT network) {
 
-            if (incommingConnections.Count == 0) {
+            if (type == NeuronType.Action) {
+                return network.highestLayer;
+            }
+
+            if (type == NeuronType.Input) {
                 return 1;
             }
 
             Neuron focused = network.getNeuronWithName(incommingConnections[0]);
-            return focused.getLayer(network) + 1;
+            int thisLayer = focused.getLayer(network) + 1;
+
+            if (network.highestLayer < thisLayer) {
+                network.highestLayer = thisLayer;
+            }
+            return thisLayer;
         }
     }
 
