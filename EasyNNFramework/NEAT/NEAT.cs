@@ -10,7 +10,7 @@ using EasyNNFramework.FeedForward;
 
 namespace EasyNNFramework {
     [Serializable]
-    internal class NEAT {
+    public class NEAT {
 
         public List<Neuron> inputNeurons, hiddenNeurons, actionNeurons;
 

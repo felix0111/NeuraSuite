@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EasyNNFramework.FeedForward {
     [Serializable]
-    internal class WeightHandler {
+    public class WeightHandler {
 
         public List<KeyValuePair<Neuron, Neuron>> neuronPairs;
         private List<float> weightList;

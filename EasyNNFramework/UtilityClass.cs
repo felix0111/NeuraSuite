@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace EasyNNFramework {
-    internal static class UtilityClass {
+    public static class UtilityClass {
         public static T DeepClone<T>(this T obj) {
             using (var ms = new MemoryStream()) {
                 var formatter = new BinaryFormatter();

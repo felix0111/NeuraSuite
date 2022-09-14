@@ -8,7 +8,7 @@ using EasyNNFramework.FeedForward;
 namespace EasyNNFramework {
 
     [Serializable]
-    internal class Neuron {
+    public class Neuron {
         public string name;
         public float value = 0f;
         public List<Neuron> incommingConnections;

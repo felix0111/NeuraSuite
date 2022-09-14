@@ -11,7 +11,7 @@ using EasyNNFramework.FeedForward;
 namespace EasyNNFramework {
 
     [Serializable]
-    internal class FFNN {
+    public class FFNN {
 
         public int layerCount;
 

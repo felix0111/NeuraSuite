@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace EasyNNFramework {
-    internal static class DebugProgram {
+    public static class DebugProgram {
         private static Neuron test1, test2;
         private static Neuron testOut1, testOut2;
 
@@ -38,6 +38,15 @@ namespace EasyNNFramework {
             neatTest.Mutate();
             neatTest.Mutate();
             neatTest.calculateNetwork();
+
+            Console.WriteLine("TestOut1: " + testOut1.value);
+            Console.WriteLine("TestOut2: " + testOut2.value);
+
+            NEAT neatTest2 = neatTest.DeepClone();
+            neatTest2.Mutate();
+            neatTest2.Mutate();
+            neatTest2.Mutate();
+            neatTest2.calculateNetwork();
 
             Console.WriteLine("TestOut1: " + testOut1.value);
             Console.WriteLine("TestOut2: " + testOut2.value);
