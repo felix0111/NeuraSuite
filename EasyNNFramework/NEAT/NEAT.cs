@@ -11,6 +11,8 @@ namespace EasyNNFramework {
         public WeightHandler weightHandler;
         private Random rnd;
 
+        public int highestLayer = 2;
+
         public NEAT(List<Neuron> _inputNeurons, List<Neuron> _actionNeurons) {
             inputNeurons = _inputNeurons;
             hiddenNeurons = new List<Neuron>();
@@ -24,12 +26,14 @@ namespace EasyNNFramework {
 
             Neuron rndInput = inputNeurons[rnd.Next(0, inputNeurons.Count)];
 
-            Neuron rndHidden;
+            Neuron rndHidden, rndHidden2;
             if (hiddenNeurons.Count != 0) {
                 rndHidden = hiddenNeurons[rnd.Next(0, hiddenNeurons.Count)];
+                rndHidden2 = hiddenNeurons[rnd.Next(0, hiddenNeurons.Count)];
             } else {
                 //if no hidden neurons, use random action neuron
                 rndHidden = actionNeurons[rnd.Next(0, actionNeurons.Count)];
+                rndHidden2 = actionNeurons[rnd.Next(0, actionNeurons.Count)];
             }
             Neuron rndAction = actionNeurons[rnd.Next(0, actionNeurons.Count)];
 
@@ -60,7 +64,7 @@ namespace EasyNNFramework {
             //rnd end neuron
             Neuron rndEnd;
             if (rnd.NextDouble() <= 0.5f) {
-                rndEnd = rndHidden;
+                rndEnd = rndHidden2;
             } else {
                 rndEnd = rndAction;
             }
