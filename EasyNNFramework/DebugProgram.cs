@@ -45,6 +45,10 @@ namespace EasyNNFramework {
             neatTest2.Mutate();
             neatTest2.calculateNetwork();
 
+            for (int i = 0; i < 100; i++) {
+                neatTest2.Mutate();
+            }
+
             Console.WriteLine("TestOut1: " + testOut1.value);
             Console.WriteLine("TestOut2: " + testOut2.value);
 

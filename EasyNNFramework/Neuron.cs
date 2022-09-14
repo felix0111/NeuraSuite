@@ -37,18 +37,18 @@ namespace EasyNNFramework {
 
             foreach (string incommingConnection in incommingConnections) {
                 Neuron focused = network.getNeuronWithName(incommingConnection);
+                float weight = network.weightHandler.getWeight(focused, this);
 
                 if (focused.type == NeuronType.Input) {
-                    sum += focused.value * network.weightHandler.getWeight(focused, this);
+                    sum += focused.value * weight;
                 } else {
-                    sum += focused.calculateValueWithIncomingConnections(network) * network.weightHandler.getWeight(focused, this);
+                    sum += focused.calculateValueWithIncomingConnections(network) * weight;
                 }
             }
 
-            sum = getFunctionValue(function, sum);
-            value = sum;
+            value = getFunctionValue(function, sum);
 
-            return sum;
+            return value;
         }
 
         public int getLayer(NEAT network) {
@@ -56,7 +56,7 @@ namespace EasyNNFramework {
             if (type == NeuronType.Action) {
                 return network.highestLayer;
             }
-
+            
             if (type == NeuronType.Input) {
                 return 1;
             }
@@ -64,8 +64,8 @@ namespace EasyNNFramework {
             Neuron focused = network.getNeuronWithName(incommingConnections[0]);
             int thisLayer = focused.getLayer(network) + 1;
 
-            if (network.highestLayer < thisLayer) {
-                network.highestLayer = thisLayer;
+            if (network.highestLayer < thisLayer+1) {
+                network.highestLayer = thisLayer+1;
             }
             return thisLayer;
         }

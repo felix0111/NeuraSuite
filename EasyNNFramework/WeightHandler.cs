@@ -8,7 +8,7 @@ namespace EasyNNFramework.FeedForward {
         public List<KeyValuePair<Neuron, Neuron>> neuronPairs;
         public List<float> weightList;
 
-        public WeightHandler(NEAT _network) {
+        public WeightHandler() {
             neuronPairs = new List<KeyValuePair<Neuron, Neuron>>();
             weightList = new List<float>();
         }
@@ -25,6 +25,7 @@ namespace EasyNNFramework.FeedForward {
             return 0f;
         }
 
+        //updates weight when already added
         public void addWeight(Neuron startNeuron, Neuron endNeuron, float weight) {
             KeyValuePair<Neuron, Neuron> kvp = new KeyValuePair<Neuron, Neuron>(startNeuron, endNeuron);
 
@@ -49,7 +50,7 @@ namespace EasyNNFramework.FeedForward {
                 startNeuron.outgoingConnections.Remove(endNeuron.name);
                 endNeuron.incommingConnections.Remove(startNeuron.name);
             } else {
-                throw new KeyNotFoundException("Cannot find weight associated with " + startNeuron.name + " and " + endNeuron.name);
+                throw new KeyNotFoundException("Cannot remove weight associated with " + startNeuron.name + " and " + endNeuron.name);
             }
         }
     }
