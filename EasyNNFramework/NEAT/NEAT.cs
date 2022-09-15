@@ -83,7 +83,11 @@ namespace EasyNNFramework {
                 }
             }
 
-            //remove useless hidden
+            removeUselessHidden();
+
+        }
+
+        private void removeUselessHidden() {
             foreach (Neuron hiddenNeuron in hiddenNeurons.ToList()) {
                 if (hiddenNeuron.incommingConnections.Count == 0 || hiddenNeuron.outgoingConnections.Count == 0) {
                     foreach (string incoming in hiddenNeuron.incommingConnections.Keys.ToList()) {
@@ -99,7 +103,6 @@ namespace EasyNNFramework {
                     hiddenNeurons.Remove(hiddenNeuron);
                 }
             }
-
         }
 
         public void calculateNetwork() {
@@ -109,7 +112,7 @@ namespace EasyNNFramework {
             resetNeuronCalculatedValues();
         }
 
-        public void resetNeuronCalculatedValues() {
+        private void resetNeuronCalculatedValues() {
             List<Neuron> neuronList = new List<Neuron>();
             
             neuronList.AddRange(actionNeurons);

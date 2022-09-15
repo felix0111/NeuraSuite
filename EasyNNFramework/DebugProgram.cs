@@ -50,7 +50,14 @@ namespace EasyNNFramework {
             }
             watch.Stop();
             Console.WriteLine("Mutate took: " + watch.ElapsedMilliseconds);
-            
+
+            watch.Restart();
+            for (int i = 0; i < 50; i++) {
+                neatTest.hiddenNeurons[1].getLayer(neatTest);
+            }
+            watch.Stop();
+            Console.WriteLine("getLayer took: " + watch.ElapsedMilliseconds);
+
             watch.Restart();
             for (int i = 0; i < 50; i++) {
                 neatTest.calculateNetwork();
