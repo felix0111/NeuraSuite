@@ -24,5 +24,16 @@ namespace EasyNNFramework {
 
             return (float)rndTrue * rndPos;
         }
+
+        public static float Clamp(float min, float max, float value) {
+            if (value > min && value < max) {
+                return value;
+            }
+            
+            if (value < min) {
+                return min;
+            }
+            return max;
+        }
     }
 }
