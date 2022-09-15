@@ -55,6 +55,7 @@ namespace EasyNNFramework {
             //if weight to rnd neuron doesnt exist
             if (weight == 0f) {
                 WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.RandomWeight(rnd));
+                weight = WeightHandler.getWeight(lowerLayerNeuron, higherLayerNeuron);
             }
 
             //mutation options
