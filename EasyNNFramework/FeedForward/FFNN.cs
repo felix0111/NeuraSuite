@@ -17,7 +17,6 @@ namespace EasyNNFramework {
 
         public List<Neuron> inputNeurons, actionNeurons;
         public List<List<Neuron>> hiddenNeurons;
-        private WeightHandler weightHandler;
 
 
         public FFNN(int layers, List<Neuron> _inputNeurons, int hiddenNeuronsPerLayer, ActivationFunction hiddenActicationFunction, List<Neuron> _actionNeurons) {
@@ -33,8 +32,6 @@ namespace EasyNNFramework {
                     hiddenNeurons[i].Add(new Neuron(i + "hidden" + j, NeuronType.Hidden, hiddenActicationFunction));
                 }
             }
-
-            weightHandler = new WeightHandler();
 
         }
 
@@ -55,14 +52,14 @@ namespace EasyNNFramework {
                 List<Neuron> lastHiddenLayer = hiddenNeurons.Last();
 
                 foreach (Neuron neuron in lastHiddenLayer) {
-                    sum += neuron.value * weightHandler.getWeight(neuron, targetNeuron);
+                    sum += neuron.value * WeightHandler.getWeight(neuron, targetNeuron);
                 }
 
                 targetNeuron.value = Neuron.getFunctionValue(targetNeuron.function, sum);
             } else if (targetNeuron.type == NeuronType.Hidden && prevLayer == 0) {
                 float sum = 0;
                 foreach (Neuron inputNeuron in inputNeurons) {
-                    sum += inputNeuron.value * weightHandler.getWeight(inputNeuron, targetNeuron);
+                    sum += inputNeuron.value * WeightHandler.getWeight(inputNeuron, targetNeuron);
                 }
 
                 targetNeuron.value = Neuron.getFunctionValue(targetNeuron.function, sum);
@@ -70,7 +67,7 @@ namespace EasyNNFramework {
                 List<Neuron> prevHiddenLayer = hiddenNeurons[prevLayer - 1];
                 float sum = 0;
                 foreach (Neuron hiddenNeuron in prevHiddenLayer) {
-                    sum += hiddenNeuron.value * weightHandler.getWeight(hiddenNeuron, targetNeuron);
+                    sum += hiddenNeuron.value * WeightHandler.getWeight(hiddenNeuron, targetNeuron);
                 }
 
                 targetNeuron.value = Neuron.getFunctionValue(targetNeuron.function, sum);
@@ -86,7 +83,7 @@ namespace EasyNNFramework {
         }
 
         public void setWeightBetweenNeurons(Neuron start, Neuron end, float weight) {
-            weightHandler.addWeight(start, end, weight);
+            WeightHandler.addWeight(start, end, weight);
         }
 
     }
