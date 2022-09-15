@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using EasyNNFramework.FeedForward;
 
@@ -54,8 +53,8 @@ namespace EasyNNFramework {
             float weight = WeightHandler.getWeight(lowerLayerNeuron, higherLayerNeuron);
             //if weight to rnd neuron doesnt exist
             if (weight == 0f) {
-                WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.RandomWeight(rnd));
-                weight = WeightHandler.getWeight(lowerLayerNeuron, higherLayerNeuron);
+                weight = UtilityClass.RandomWeight(rnd);
+                WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, weight);
             }
 
             //mutation options
@@ -66,9 +65,7 @@ namespace EasyNNFramework {
                     WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.RandomWeight(rnd));
                 } else {
                     //update weight with random multiplier
-                    WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron,
-                        UtilityClass.InverseLerp(0, 4, Math.Abs(weight) * (float) rnd.NextDouble()) *
-                        Math.Sign(weight));
+                    WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.Clamp(-4f, 4f, weight * 2f * (float) rnd.NextDouble()));
                 }
             } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight) / 100f) {
                 //remove weight
@@ -82,7 +79,7 @@ namespace EasyNNFramework {
                 WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
                 WeightHandler.addWeight(lowerLayerNeuron, newHidden, weight);
                 WeightHandler.addWeight(newHidden, higherLayerNeuron, 1);
-            } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRandomFunction)/100f) {
+            } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRandomFunction) / 100f) {
                 lowerLayerNeuron.function = getRandomFunction(rnd);
             }
 
@@ -93,13 +90,11 @@ namespace EasyNNFramework {
             foreach (Neuron hiddenNeuron in hiddenNeurons.ToList()) {
                 if (hiddenNeuron.incommingConnections.Count == 0 || hiddenNeuron.outgoingConnections.Count == 0) {
                     foreach (string incoming in hiddenNeuron.incommingConnections.Keys.ToList()) {
-                        Neuron focused = getNeuronWithName(incoming);
-                        WeightHandler.removeWeight(focused, hiddenNeuron);
+                        WeightHandler.removeWeight(getNeuronWithName(incoming), hiddenNeuron);
                     }
 
                     foreach (string outgoing in hiddenNeuron.outgoingConnections.Keys.ToList()) {
-                        Neuron focused = getNeuronWithName(outgoing);
-                        WeightHandler.removeWeight(hiddenNeuron, focused);
+                        WeightHandler.removeWeight(hiddenNeuron, getNeuronWithName(outgoing));
                     }
 
                     hiddenNeurons.Remove(hiddenNeuron);
@@ -115,25 +110,29 @@ namespace EasyNNFramework {
         }
 
         private void resetNeuronCalculatedValues() {
-            List<Neuron> neuronList = new List<Neuron>();
-            
-            neuronList.AddRange(actionNeurons);
-            neuronList.AddRange(hiddenNeurons);
+            foreach (Neuron neuron in hiddenNeurons) {
+                neuron.isCalculated = false;
+            }
 
-            foreach (Neuron neuron in neuronList) {
+            foreach (Neuron neuron in actionNeurons) {
                 neuron.isCalculated = false;
             }
         }
 
         public Neuron getNeuronWithName(string name) {
+            foreach (Neuron neuron in inputNeurons) {
+                if (neuron.name == name) {
+                    return neuron;
+                }
+            }
 
-            List<Neuron> neuronList = new List<Neuron>();
-            
-            neuronList.AddRange(inputNeurons);
-            neuronList.AddRange(actionNeurons);
-            neuronList.AddRange(hiddenNeurons);
+            foreach (Neuron neuron in hiddenNeurons) {
+                if (neuron.name == name) {
+                    return neuron;
+                }
+            }
 
-            foreach (Neuron neuron in neuronList) {
+            foreach (Neuron neuron in actionNeurons) {
                 if (neuron.name == name) {
                     return neuron;
                 }
