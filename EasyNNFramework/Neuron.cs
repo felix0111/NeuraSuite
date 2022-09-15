@@ -41,9 +41,11 @@ namespace EasyNNFramework {
                 return value;
             }
 
+            Neuron focused;
+            float weight;
             foreach (KeyValuePair<string, float> incommingConnection in incommingConnections) {
-                Neuron focused = network.getNeuronWithName(incommingConnection.Key);
-                float weight = incommingConnection.Value;
+                focused = network.getNeuronWithName(incommingConnection.Key);
+                weight = incommingConnection.Value;
 
                 if (focused.type == NeuronType.Input) {
                     sum += focused.value * weight;
@@ -68,8 +70,7 @@ namespace EasyNNFramework {
                 return 1;
             }
 
-            Neuron focused = network.getNeuronWithName(incommingConnections.First().Key);
-            int thisLayer = focused.getLayer(network) + 1;
+            int thisLayer = network.getNeuronWithName(incommingConnections.First().Key).getLayer(network) + 1;
 
             if (network.highestLayer < thisLayer+1) {
                 network.highestLayer = thisLayer+1;
