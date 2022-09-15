@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using EasyNNFramework.FeedForward;
 
@@ -82,12 +83,10 @@ namespace EasyNNFramework {
                     WeightHandler.addWeight(newHidden, higherLayerNeuron, 1);
                 }
             }
-
             removeUselessHidden();
-
         }
 
-        private void removeUselessHidden() {
+        public void removeUselessHidden() {
             foreach (Neuron hiddenNeuron in hiddenNeurons.ToList()) {
                 if (hiddenNeuron.incommingConnections.Count == 0 || hiddenNeuron.outgoingConnections.Count == 0) {
                     foreach (string incoming in hiddenNeuron.incommingConnections.Keys.ToList()) {

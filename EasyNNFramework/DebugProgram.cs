@@ -43,20 +43,13 @@ namespace EasyNNFramework {
 
             test1.value = 2f;
             test2.value = 1f;
-
+            
             watch.Start();
             for (int i = 0; i < 50; i++) {
                 neatTest.Mutate();
             }
             watch.Stop();
             Console.WriteLine("Mutate took: " + watch.ElapsedMilliseconds);
-
-            watch.Restart();
-            for (int i = 0; i < 50; i++) {
-                neatTest.hiddenNeurons[1].getLayer(neatTest);
-            }
-            watch.Stop();
-            Console.WriteLine("getLayer took: " + watch.ElapsedMilliseconds);
 
             watch.Restart();
             for (int i = 0; i < 50; i++) {
