@@ -10,19 +10,16 @@ namespace EasyNNFramework {
 
         public List<Neuron> inputNeurons, hiddenNeurons, actionNeurons;
         
-        private Random rnd;
-        private int counter = 0;
-
+        public int counter = 0;
         public int highestLayer = 2;
 
         public NEAT(List<Neuron> _inputNeurons, List<Neuron> _actionNeurons) {
             inputNeurons = _inputNeurons;
             hiddenNeurons = new List<Neuron>();
             actionNeurons = _actionNeurons;
-            rnd = new Random();
         }
 
-        public void Mutate() {
+        public void Mutate(System.Random rnd) {
             float rndNumber = (float) rnd.NextDouble();
 
             List<Neuron> possibleStartNeurons = new List<Neuron>();

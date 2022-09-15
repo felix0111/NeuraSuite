@@ -46,7 +46,7 @@ namespace EasyNNFramework {
             
             watch.Start();
             for (int i = 0; i < 50; i++) {
-                neatTest.Mutate();
+                neatTest.Mutate(new Random());
             }
             watch.Stop();
             Console.WriteLine("Mutate took: " + watch.ElapsedMilliseconds);
