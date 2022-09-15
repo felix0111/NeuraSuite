@@ -70,7 +70,15 @@ namespace EasyNNFramework {
                 return 1;
             }
 
-            int thisLayer = network.getNeuronWithName(incommingConnections.First().Key).getLayer(network) + 1;
+            int highestLayerInIncommingNeurons = 1;
+            foreach (string key in incommingConnections.Keys) {
+                int layer = network.getNeuronWithName(key).getLayer(network);
+                if (layer > highestLayerInIncommingNeurons) {
+                    highestLayerInIncommingNeurons = layer;
+                }
+            }
+
+            int thisLayer = highestLayerInIncommingNeurons+1;
 
             if (network.highestLayer < thisLayer+1) {
                 network.highestLayer = thisLayer+1;
