@@ -7,7 +7,7 @@ namespace EasyNNFramework {
 
     [Serializable]
     public class Neuron : IEquatable<Neuron> {
-        public string name;
+        public readonly string name;
         public float value = 0f;
         public bool isCalculated = false;
         public Dictionary<string, float> incommingConnections, outgoingConnections;
@@ -79,6 +79,10 @@ namespace EasyNNFramework {
 
         public override bool Equals(object obj) {
             return this.Equals(obj as Neuron);
+        }
+
+        public override int GetHashCode() {
+            return this.name.GetHashCode();
         }
 
         public bool Equals(Neuron obj) {
