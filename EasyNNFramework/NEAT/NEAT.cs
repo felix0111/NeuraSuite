@@ -82,12 +82,8 @@ namespace EasyNNFramework {
                 WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
                 WeightHandler.addWeight(lowerLayerNeuron, newHidden, weight);
                 WeightHandler.addWeight(newHidden, higherLayerNeuron, 1);
-            } else if(rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRandomFunction) / 100f) {
-                if (rnd.NextDouble() <= 0.5f) {
-                    higherLayerNeuron.function = getRandomFunction(rnd);
-                } else {
-                    lowerLayerNeuron.function = getRandomFunction(rnd);
-                }
+            } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRandomFunction)/100f) {
+                lowerLayerNeuron.function = getRandomFunction(rnd);
             }
 
             removeUselessHidden();
