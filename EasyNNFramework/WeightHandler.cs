@@ -1,52 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace EasyNNFramework.FeedForward {
     [Serializable]
-    public class WeightHandler {
+    public static class WeightHandler {
         
-        public List<KeyValuePair<Neuron, Neuron>> neuronPairs;
-        public List<float> weightList;
-
-        public WeightHandler() {
-            neuronPairs = new List<KeyValuePair<Neuron, Neuron>>();
-            weightList = new List<float>();
-        }
 
         //returns 0 when no weight found
-        public float getWeight(Neuron startNeuron, Neuron endNeuron) {
-            KeyValuePair<Neuron, Neuron> kvp = new KeyValuePair<Neuron, Neuron>(startNeuron, endNeuron);
+        public static float getWeight(Neuron startNeuron, Neuron endNeuron) {
 
-            int index = neuronPairs.IndexOf(kvp);
-            if (index != -1) {
-                return weightList[index];
-            }
-
-            return 0f;
+            startNeuron.outgoingConnections.TryGetValue(endNeuron.name, out float value);
+            return value;
         }
 
         //updates weight when already added
-        public void addWeight(Neuron startNeuron, Neuron endNeuron, float weight) {
-            KeyValuePair<Neuron, Neuron> kvp = new KeyValuePair<Neuron, Neuron>(startNeuron, endNeuron);
+        public static void addWeight(Neuron startNeuron, Neuron endNeuron, float weight) {
 
-            int index = neuronPairs.IndexOf(kvp);
-            if (index == -1) {
-                neuronPairs.Add(kvp);
-                weightList.Add(weight);
-                startNeuron.outgoingConnections.Add(endNeuron.name);
-                endNeuron.incommingConnections.Add(startNeuron.name);
+            bool exists = startNeuron.outgoingConnections.ContainsKey(endNeuron.name) && endNeuron.incommingConnections.ContainsKey(startNeuron.name);
+            if (!exists) {
+                startNeuron.outgoingConnections.Add(endNeuron.name, weight);
+                endNeuron.incommingConnections.Add(startNeuron.name, weight);
             } else {
-                weightList[index] = weight;
+                startNeuron.outgoingConnections[endNeuron.name] = weight;
+                endNeuron.incommingConnections[startNeuron.name] = weight;
             }
         }
 
-        public void removeWeight(Neuron startNeuron, Neuron endNeuron) {
-            KeyValuePair<Neuron, Neuron> kvp = new KeyValuePair<Neuron, Neuron>(startNeuron, endNeuron);
+        public static void removeWeight(Neuron startNeuron, Neuron endNeuron) {
 
-            int index = neuronPairs.IndexOf(kvp);
-            if (index != -1) {
-                neuronPairs.RemoveAt(index);
-                weightList.RemoveAt(index);
+            bool exists = startNeuron.outgoingConnections.ContainsKey(endNeuron.name) && endNeuron.incommingConnections.ContainsKey(startNeuron.name);
+            if (exists) {
                 startNeuron.outgoingConnections.Remove(endNeuron.name);
                 endNeuron.incommingConnections.Remove(startNeuron.name);
             } else {
