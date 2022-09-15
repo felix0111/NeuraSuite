@@ -19,9 +19,7 @@ namespace EasyNNFramework {
             actionNeurons = _actionNeurons;
         }
 
-        public void Mutate(System.Random rnd) {
-            float rndNumber = (float) rnd.NextDouble();
-
+        public void Mutate(System.Random rnd, float chanceUpdateWeight, float chanceRemoveWeight, float chanceAddNeuron, float chanceRandomFunction) {
             List<Neuron> possibleStartNeurons = new List<Neuron>();
             possibleStartNeurons.AddRange(inputNeurons);
             possibleStartNeurons.AddRange(hiddenNeurons);
@@ -42,7 +40,7 @@ namespace EasyNNFramework {
             if (rndStart.type == NeuronType.Input || rndEnd.type == NeuronType.Action) {
                 lowerLayerNeuron = rndStart;
                 higherLayerNeuron = rndEnd;
-            } else if(rndStart.getLayer(this) > rndEnd.getLayer(this)) {
+            } else if (rndStart.getLayer(this) > rndEnd.getLayer(this)) {
                 higherLayerNeuron = rndStart;
                 lowerLayerNeuron = rndEnd;
             } else if (rndStart.getLayer(this) < rndEnd.getLayer(this)) {
@@ -57,33 +55,44 @@ namespace EasyNNFramework {
             //if weight to rnd neuron doesnt exist
             if (weight == 0f) {
                 WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.RandomWeight(rnd));
-            } else {
-                if (rndNumber <= 0.25f) {
+            }
+
+            //mutation options
+            float rndChance = (float)rnd.NextDouble();
+            if (rndChance <= chanceUpdateWeight / 100f) {
+                if (rnd.NextDouble() <= 0.5f) {
                     //update weight with random value
                     WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.RandomWeight(rnd));
-                } else if (rndNumber <= 0.50f) {
+                } else {
                     //update weight with random multiplier
                     WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron,
                         UtilityClass.InverseLerp(0, 4, Math.Abs(weight) * (float) rnd.NextDouble()) *
                         Math.Sign(weight));
-                } else if (rndNumber <= 0.75f) {
-                    //remove weight
-                    WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
+                }
+            } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight) / 100f) {
+                //remove weight
+                WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
+            } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron) / 100f) {
+                //add neuron between start and end
+                Neuron newHidden = new Neuron(higherLayerNeuron.getLayer(this) + "hidden" + counter, NeuronType.Hidden,
+                    ActivationFunction.GELU);
+                hiddenNeurons.Add(newHidden);
+                counter++;
+                WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
+                WeightHandler.addWeight(lowerLayerNeuron, newHidden, weight);
+                WeightHandler.addWeight(newHidden, higherLayerNeuron, 1);
+            } else if(rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRandomFunction) / 100f) {
+                if (rnd.NextDouble() <= 0.5f) {
+                    higherLayerNeuron.function = getRandomFunction(rnd);
                 } else {
-                    //add neuron between start and end
-                    Neuron newHidden = new Neuron(higherLayerNeuron.getLayer(this) + "hidden" + counter, NeuronType.Hidden,
-                        ActivationFunction.GELU);
-                    hiddenNeurons.Add(newHidden);
-                    counter++;
-                    WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron);
-                    WeightHandler.addWeight(lowerLayerNeuron, newHidden, weight);
-                    WeightHandler.addWeight(newHidden, higherLayerNeuron, 1);
+                    lowerLayerNeuron.function = getRandomFunction(rnd);
                 }
             }
+
             removeUselessHidden();
         }
 
-        public void removeUselessHidden() {
+        private void removeUselessHidden() {
             foreach (Neuron hiddenNeuron in hiddenNeurons.ToList()) {
                 if (hiddenNeuron.incommingConnections.Count == 0 || hiddenNeuron.outgoingConnections.Count == 0) {
                     foreach (string incoming in hiddenNeuron.incommingConnections.Keys.ToList()) {
@@ -134,6 +143,10 @@ namespace EasyNNFramework {
             }
 
             return null;
+        }
+
+        private ActivationFunction getRandomFunction(Random rnd) {
+            return (ActivationFunction)rnd.Next(0, Enum.GetValues(typeof(ActivationFunction)).Length);
         }
     }
 }
