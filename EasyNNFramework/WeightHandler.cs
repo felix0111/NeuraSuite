@@ -10,8 +10,10 @@ namespace EasyNNFramework.FeedForward {
         //returns 0 when no weight found
         public static float getWeight(Neuron startNeuron, Neuron endNeuron) {
 
-            startNeuron.outgoingConnections.TryGetValue(endNeuron.name, out float value);
-            return value;
+            if (startNeuron.outgoingConnections.TryGetValue(endNeuron.name, out float value)) {
+                return value;
+            }
+            return 0f;
         }
 
         //updates weight when already added
