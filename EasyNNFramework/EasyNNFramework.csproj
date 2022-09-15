@@ -44,6 +44,8 @@
     <Compile Include="RNN.cs" />
     <Compile Include="UtilityClass.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
