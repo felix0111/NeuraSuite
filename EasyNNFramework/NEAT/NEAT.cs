@@ -97,12 +97,12 @@ namespace EasyNNFramework {
             //remove useless hidden
             foreach (Neuron hiddenNeuron in hiddenNeurons.ToList()) {
                 if (hiddenNeuron.incommingConnections.Count == 0 || hiddenNeuron.outgoingConnections.Count == 0) {
-                    foreach (string incoming in hiddenNeuron.incommingConnections.ToList()) {
+                    foreach (string incoming in hiddenNeuron.incommingConnections.Keys.ToList()) {
                         Neuron focused = getNeuronWithName(incoming);
                         weightHandler.removeWeight(focused, hiddenNeuron);
                     }
 
-                    foreach (string outgoing in hiddenNeuron.outgoingConnections.ToList()) {
+                    foreach (string outgoing in hiddenNeuron.outgoingConnections.Keys.ToList()) {
                         Neuron focused = getNeuronWithName(outgoing);
                         weightHandler.removeWeight(hiddenNeuron, focused);
                     }
@@ -116,6 +116,18 @@ namespace EasyNNFramework {
         public void calculateNetwork() {
             foreach (Neuron actionNeuron in actionNeurons) {
                 actionNeuron.calculateValueWithIncomingConnections(this);
+            }
+            resetNeuronCalculatedValues();
+        }
+
+        public void resetNeuronCalculatedValues() {
+            List<Neuron> neuronList = new List<Neuron>();
+            
+            neuronList.AddRange(actionNeurons);
+            neuronList.AddRange(hiddenNeurons);
+
+            foreach (Neuron neuron in neuronList) {
+                neuron.isCalculated = false;
             }
         }
 

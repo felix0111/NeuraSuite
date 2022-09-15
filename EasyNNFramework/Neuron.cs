@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using EasyNNFramework.FeedForward;
 
 namespace EasyNNFramework {
@@ -8,7 +9,8 @@ namespace EasyNNFramework {
     public class Neuron : IEquatable<Neuron> {
         public string name;
         public float value = 0f;
-        public List<string> incommingConnections, outgoingConnections;
+        public bool isCalculated = false;
+        public Dictionary<string, float> incommingConnections, outgoingConnections;
         public NeuronType type;
         public ActivationFunction function;
 
@@ -17,8 +19,8 @@ namespace EasyNNFramework {
             type = _type;
             function = _function;
 
-            incommingConnections = new List<string>();
-            outgoingConnections = new List<string>();
+            incommingConnections = new Dictionary<string, float>();
+            outgoingConnections = new Dictionary<string, float>();
         }
 
         public static float getFunctionValue(ActivationFunction _function, float sum) {
@@ -35,9 +37,13 @@ namespace EasyNNFramework {
         public float calculateValueWithIncomingConnections(NEAT network) {
             float sum = 0f;
 
-            foreach (string incommingConnection in incommingConnections) {
-                Neuron focused = network.getNeuronWithName(incommingConnection);
-                float weight = network.weightHandler.getWeight(focused, this);
+            if (isCalculated) {
+                return value;
+            }
+
+            foreach (KeyValuePair<string, float> incommingConnection in incommingConnections) {
+                Neuron focused = network.getNeuronWithName(incommingConnection.Key);
+                float weight = incommingConnection.Value;
 
                 if (focused.type == NeuronType.Input) {
                     sum += focused.value * weight;
@@ -47,6 +53,7 @@ namespace EasyNNFramework {
             }
 
             value = getFunctionValue(function, sum);
+            isCalculated = true;
 
             return value;
         }
@@ -61,7 +68,7 @@ namespace EasyNNFramework {
                 return 1;
             }
 
-            Neuron focused = network.getNeuronWithName(incommingConnections[0]);
+            Neuron focused = network.getNeuronWithName(incommingConnections.First().Key);
             int thisLayer = focused.getLayer(network) + 1;
 
             if (network.highestLayer < thisLayer+1) {
