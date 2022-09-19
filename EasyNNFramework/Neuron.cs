@@ -77,13 +77,8 @@ namespace EasyNNFramework {
                     highestLayerInIncommingNeurons = layer;
                 }
             }
-
-            int thisLayer = highestLayerInIncommingNeurons+1;
-
-            if (network.highestLayer < thisLayer+1) {
-                network.highestLayer = thisLayer+1;
-            }
-            return thisLayer;
+            
+            return highestLayerInIncommingNeurons + 1;
         }
 
         public override bool Equals(object obj) {

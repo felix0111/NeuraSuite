@@ -84,6 +84,20 @@ namespace EasyNNFramework {
             }
 
             removeUselessHidden();
+            recalculateLayer();
+        }
+
+        private void recalculateLayer() {
+
+            int highestHiddenLayer = 1;
+            foreach (Neuron hiddenNeuron in hiddenNeurons) {
+                int layer = hiddenNeuron.getLayer(this);
+                if (layer > highestHiddenLayer) {
+                    highestHiddenLayer = layer;
+                }
+            }
+
+            highestLayer = highestHiddenLayer + 1;
         }
 
         private void removeUselessHidden() {
