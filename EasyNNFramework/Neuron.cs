@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using EasyNNFramework.FeedForward;
 
 namespace EasyNNFramework {
 
@@ -9,7 +7,6 @@ namespace EasyNNFramework {
     public class Neuron : IEquatable<Neuron> {
         public readonly string name;
         public float value = 0f;
-        public bool isCalculated = false;
         public Dictionary<string, float> incommingConnections, outgoingConnections;
         public NeuronType type;
         public ActivationFunction function;
@@ -37,48 +34,23 @@ namespace EasyNNFramework {
         public float calculateValueWithIncomingConnections(NEAT network) {
             float sum = 0f;
 
-            if (isCalculated) {
-                return value;
-            }
-
             Neuron focused;
             float weight;
             foreach (KeyValuePair<string, float> incommingConnection in incommingConnections) {
                 focused = network.getNeuronWithName(incommingConnection.Key);
                 weight = incommingConnection.Value;
 
-                if (focused.type == NeuronType.Input) {
-                    sum += focused.value * weight;
-                } else {
-                    sum += focused.calculateValueWithIncomingConnections(network) * weight;
-                }
+                sum += focused.value * weight;
             }
 
+            
             value = getFunctionValue(function, sum);
-            isCalculated = true;
-
             return value;
         }
 
-        public int getLayer(NEAT network) {
-
-            if (type == NeuronType.Action) {
-                return network.highestLayer;
-            }
-            
-            if (type == NeuronType.Input) {
-                return 1;
-            }
-
-            int highestLayerInIncommingNeurons = 1;
-            foreach (string key in incommingConnections.Keys) {
-                int layer = network.getNeuronWithName(key).getLayer(network);
-                if (layer > highestLayerInIncommingNeurons) {
-                    highestLayerInIncommingNeurons = layer;
-                }
-            }
-            
-            return highestLayerInIncommingNeurons + 1;
+        public int getLayerCount(NEAT network) {
+            Layer l = network.layerManager.getLayerFromNeuron(name);
+            return network.layerManager.allLayers.IndexOf(l) + 1;
         }
 
         public override bool Equals(object obj) {
