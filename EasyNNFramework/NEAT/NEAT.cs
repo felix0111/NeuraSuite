@@ -147,6 +147,9 @@ namespace EasyNNFramework {
 
         public void calculateNetwork() {
 
+            var vals = connectionList.Values.ToList();
+            List<Connection> c = new List<Connection>();
+
             foreach (Layer layer in layerManager.allLayers) {
                 if (layer.name == "input") {
                     continue;
@@ -154,7 +157,13 @@ namespace EasyNNFramework {
 
                 foreach (Neuron neuron in layer.neurons.Values) {
                     //list containing all connections ending at current neuron
-                    List<Connection> c = connectionList.Values.ToList().Where(o => o.toNeuron.name == neuron.name).ToList();
+                    c.Clear();
+                    for (int i = 0; i < vals.Count; i++) {
+                        if (vals[i].toNeuron.Equals(neuron)) {
+                            c.Add(vals[i]);
+                        }
+                    }
+
                     neuron.calculateValueWithIncommingConnections(c, this);
                 }
             }
