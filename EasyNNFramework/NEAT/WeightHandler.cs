@@ -26,13 +26,14 @@ namespace EasyNNFramework {
             }
         }
 
-        public static void removeWeight(Neuron startNeuron, Neuron endNeuron, NEAT network) {
+        public static bool removeWeight(Neuron startNeuron, Neuron endNeuron, NEAT network) {
             bool isAvailable = network.connectionList.ContainsKey(startNeuron.name + endNeuron.name);
 
             if (isAvailable) {
                 network.connectionList.Remove(startNeuron.name+endNeuron.name);
+                return true;
             } else {
-                throw new Exception("Can't remove non-existing weight!");
+                return false;
             }
         }
 

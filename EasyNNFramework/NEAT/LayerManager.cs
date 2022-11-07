@@ -49,25 +49,6 @@ namespace EasyNNFramework {
 
         }
 
-        public Layer getLayerFromNeuron(string name) {
-            if (name.Contains("hidden")) {
-                foreach (Layer hiddenLayer in getAllHiddenLayers()) {
-                    if (hiddenLayer.neurons.ContainsKey(name)) {
-                        return hiddenLayer;
-                    }
-                }
-            }
-
-            if (inputLayer.neurons.ContainsKey(name)) {
-                return inputLayer;
-            }
-            if (actionLayer.neurons.ContainsKey(name)) {
-                return actionLayer;
-            }
-
-            throw new Exception("Can't find neuron in any layer!");
-        }
-
         public Layer inputLayer {
             get { return allLayers[0]; }
         }

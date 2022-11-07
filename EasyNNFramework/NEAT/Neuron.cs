@@ -7,6 +7,7 @@ namespace EasyNNFramework {
     public class Neuron : IEquatable<Neuron> {
         public readonly string name;
         public float value = 0f;
+        public int layer;
         public NeuronType type;
         public ActivationFunction function;
 
@@ -35,11 +36,6 @@ namespace EasyNNFramework {
             }
             
             value = getFunctionValue(function, sum);
-        }
-
-        public int getLayerCount(NEAT network) {
-            Layer l = network.layerManager.getLayerFromNeuron(name);
-            return network.layerManager.allLayers.IndexOf(l) + 1;
         }
 
         public override bool Equals(object obj) {

@@ -15,10 +15,12 @@ namespace EasyNNFramework {
         public NEAT(Dictionary<string, Neuron> _inputNeurons, Dictionary<string, Neuron> _actionNeurons) {
             layerManager = new LayerManager(_inputNeurons, _actionNeurons);
             connectionList = new Dictionary<string, Connection>();
+
+            recalculateNeuronLayer();
         }
 
         //chances must add up to 100
-        public void Mutate(System.Random rndObj, float chanceUpdateWeight, float chanceRemoveWeight, float chanceAddNeuron, float chanceRemoveNeuron, float chanceRandomFunction) {
+        public void Mutate(System.Random rndObj, float chanceUpdateWeight, float chanceRemoveWeight, float chanceAddNeuron, float chanceRemoveNeuron, float chanceRandomFunction, ActivationFunction hiddenActivationFunction) {
             List<Neuron> possibleStartNeurons = new List<Neuron>();
             List<Neuron> possibleEndNeurons = new List<Neuron>();
             possibleStartNeurons.AddRange(layerManager.inputLayer.neurons.Values);
@@ -32,11 +34,9 @@ namespace EasyNNFramework {
             restart:
             //choose random start neuron
             Neuron rndStart = possibleStartNeurons[rndObj.Next(0, possibleStartNeurons.Count)];
-            int layerCountStart = rndStart.getLayerCount(this);
 
             //rndObj end neuron
             Neuron rndEnd = possibleEndNeurons[rndObj.Next(0, possibleEndNeurons.Count)];
-            int layerCountEnd = rndEnd.getLayerCount(this);
 
             //differentiate between neurons depending on layer
             //this is necessary when 2 hidden neurons were chosen as random neurons
@@ -44,26 +44,23 @@ namespace EasyNNFramework {
             if (rndStart.type == NeuronType.Input || rndEnd.type == NeuronType.Action) {
                 lowerLayerNeuron = rndStart;
                 higherLayerNeuron = rndEnd;
-            } else if (layerCountStart > layerCountEnd) {
+            } else if (rndStart.layer > rndEnd.layer) {
                 higherLayerNeuron = rndStart;
                 lowerLayerNeuron = rndEnd;
-            } else if (layerCountStart < layerCountEnd) {
+            } else if (rndStart.layer < rndEnd.layer) {
                 higherLayerNeuron = rndEnd;
                 lowerLayerNeuron = rndStart;
             } else {    //same layer
                 goto restart;
             }
 
-            layerCountStart = lowerLayerNeuron.getLayerCount(this);
-            layerCountEnd = higherLayerNeuron.getLayerCount(this);
-
             float weight = WeightHandler.getWeight(lowerLayerNeuron, higherLayerNeuron, this);
             //if weight to rndObj neuron doesnt exist
             if (weight == 0f) {
                 weight = UtilityClass.RandomWeight(rndObj);
-                WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, weight, this);
             }
 
+            bool recalcLayer = false, remUseless = false;
             //mutation options
             float rndChance = (float)rndObj.NextDouble();
             if (rndChance <= chanceUpdateWeight / 100f) {
@@ -76,28 +73,33 @@ namespace EasyNNFramework {
                 }
             } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight) / 100f) {
                 WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron, this);
+                remUseless = true;
+                recalcLayer = true;
             } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron) / 100f) {
                 //add neuron between start and end
-                Neuron newHidden = new Neuron(layerCountEnd + "hidden" + counter, NeuronType.Hidden,
-                    ActivationFunction.GELU);
+                Neuron newHidden = new Neuron(higherLayerNeuron.layer + "hidden" + counter, NeuronType.Hidden,
+                    hiddenActivationFunction);
 
                 Layer newLayer;
-                if (layerCountEnd - layerCountStart > 1) {
-                    newLayer = layerManager.getLayer(layerCountStart + 1);
+                if (higherLayerNeuron.layer - lowerLayerNeuron.layer > 1) {
+                    newLayer = layerManager.getLayer(lowerLayerNeuron.layer + 1);
                 } else {
-                    newLayer = layerManager.addHiddenLayerBeforeAnother(layerManager.getLayer(layerCountEnd));
+                    newLayer = layerManager.addHiddenLayerBeforeAnother(layerManager.getLayer(higherLayerNeuron.layer));
                 }
                 newLayer.neurons.Add(newHidden.name, newHidden);
                 counter++;
                 WeightHandler.removeWeight(lowerLayerNeuron, higherLayerNeuron, this);
                 WeightHandler.addWeight(lowerLayerNeuron, newHidden, weight, this);
                 WeightHandler.addWeight(newHidden, higherLayerNeuron, 1, this);
+                recalcLayer = true;
             } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron) / 100f) {
                 if (layerManager.layerCount > 2) {
                     Layer rndLayer = layerManager.getRandomHiddenLayer(rndObj);
                     Neuron rndHidden = rndLayer.neurons.Values.ToList()[rndObj.Next(0, rndLayer.neurons.Count)];
                     WeightHandler.removeAllConnections(rndHidden, this);
                     rndLayer.neurons.Remove(rndHidden.name);
+                    remUseless = true;
+                    recalcLayer = true;
                 }
             } else if (rndChance <= (chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron + chanceRandomFunction) / 100f) {
                 if (layerManager.layerCount > 2) {
@@ -107,32 +109,37 @@ namespace EasyNNFramework {
                 }
             }
 
-            if (layerManager.layerCount > 2) {
+            if (remUseless && layerManager.layerCount > 2) {
                 removeUselessHidden();
                 removeUselessLayer();
             }
+
+            if (recalcLayer) {
+                recalculateNeuronLayer();
+            }
         }
-        
+
+        public void recalculateNeuronLayer() {
+            for (int i = 0; i < layerManager.allLayers.Count; i++) {
+                foreach (Neuron n in layerManager.allLayers[i].neurons.Values) {
+                    n.layer = i + 1;
+                }
+            }
+        }
+
         private void removeUselessHidden() {
+
+            string s = "";
+            foreach (string key in connectionList.Keys) {
+                s += key;
+            }
 
             foreach (Layer hiddenLayer in layerManager.getAllHiddenLayers()) {
                 foreach (Neuron hiddenNeuron in hiddenLayer.neurons.Values.ToList()) {
-                    bool contains = false;
-
-                    //check if connection to neuron is found
-                    foreach (KeyValuePair<string, Connection> connection in connectionList) {
-                        if (connection.Key.Contains(hiddenNeuron.name)) {
-                            //goto next neuron
-                            contains = true;
-                            break;
-                        }
-                    }
-
                     //if no connection found, remove
-                    if (!contains) {
+                    if (!s.Contains(hiddenNeuron.name)) {
                         hiddenLayer.neurons.Remove(hiddenNeuron.name);
                     }
-                    
                 }
             }
         }
@@ -149,7 +156,7 @@ namespace EasyNNFramework {
 
             var vals = connectionList.Values.ToList();
             List<Connection> c = new List<Connection>();
-
+            
             foreach (Layer layer in layerManager.allLayers) {
                 if (layer.name == "input") {
                     continue;
