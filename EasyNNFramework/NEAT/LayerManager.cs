@@ -14,16 +14,17 @@ namespace EasyNNFramework {
 
         public LayerManager(Dictionary<string, Neuron> _inputNeurons, Dictionary<string, Neuron> _actionNeurons) {
 
-            allLayers = new List<Layer>();
-            allLayers.Add(new Layer("input") {neurons = _inputNeurons});
-            allLayers.Add(new Layer("action") {neurons = _actionNeurons});
+            allLayers = new List<Layer> {
+                new Layer("input") { neurons = _inputNeurons },
+                new Layer("action") { neurons = _actionNeurons }
+            };
         }
 
         public Layer addHiddenLayerBeforeAnother(Layer another) {
             int indexAnother = allLayers.IndexOf(another);
 
             if (indexAnother <= 0) {
-                throw new Exception("Can't add layer before action layer!");
+                throw new Exception("Can't add layer before input layer!");
             }
 
             Layer newHidden = new Layer("hidden");

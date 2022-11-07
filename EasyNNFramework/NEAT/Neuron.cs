@@ -7,7 +7,6 @@ namespace EasyNNFramework {
     public class Neuron : IEquatable<Neuron> {
         public readonly string name;
         public float value = 0f;
-        public Dictionary<string, float> incommingConnections, outgoingConnections;
         public NeuronType type;
         public ActivationFunction function;
 
@@ -15,9 +14,6 @@ namespace EasyNNFramework {
             name = _name;
             type = _type;
             function = _function;
-
-            incommingConnections = new Dictionary<string, float>();
-            outgoingConnections = new Dictionary<string, float>();
         }
 
         public static float getFunctionValue(ActivationFunction _function, float sum) {
@@ -31,21 +27,14 @@ namespace EasyNNFramework {
             }
         }
 
-        public float calculateValueWithIncomingConnections(NEAT network) {
+        public void calculateValueWithIncommingConnections(List<Connection> list, NEAT network) {
             float sum = 0f;
-
-            Neuron focused;
-            float weight;
-            foreach (KeyValuePair<string, float> incommingConnection in incommingConnections) {
-                focused = network.getNeuronWithName(incommingConnection.Key);
-                weight = incommingConnection.Value;
-
-                sum += focused.value * weight;
+            
+            foreach (Connection c in list) {
+                sum += c.fromNeuron.value * c.weight;
             }
-
             
             value = getFunctionValue(function, sum);
-            return value;
         }
 
         public int getLayerCount(NEAT network) {
@@ -70,4 +59,5 @@ namespace EasyNNFramework {
     public enum NeuronType {Input = 0, Hidden = 1, Action = 2}
 
     public enum ActivationFunction {GELU = 0, TANH = 1}
+
 }
