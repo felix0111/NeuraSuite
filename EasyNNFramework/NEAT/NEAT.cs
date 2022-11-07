@@ -181,6 +181,7 @@ namespace EasyNNFramework {
         }
     }
 
+    [Serializable]
     public class Connection {
 
         public float weight;
