@@ -129,15 +129,17 @@ namespace EasyNNFramework {
 
         private void removeUselessHidden() {
 
-            string s = "";
-            foreach (string key in connectionList.Keys) {
-                s += key;
+            string startingS = "";
+            string endingS = "";
+            foreach (var c in connectionList.Values) {
+                startingS += c.fromNeuron.name;
+                endingS += c.toNeuron.name;
             }
 
             foreach (Layer hiddenLayer in layerManager.getAllHiddenLayers()) {
                 foreach (Neuron hiddenNeuron in hiddenLayer.neurons.Values.ToList()) {
                     //if no connection found, remove
-                    if (!s.Contains(hiddenNeuron.name)) {
+                    if (!startingS.Contains(hiddenNeuron.name) && !endingS.Contains(hiddenNeuron.name)) {
                         hiddenLayer.neurons.Remove(hiddenNeuron.name);
                     }
                 }
