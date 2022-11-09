@@ -173,6 +173,12 @@ namespace EasyNNFramework {
                         }
                     }
 
+                    //if no incomming connection
+                    //should not happen !exception are action neurons!
+                    if (c.Count == 0) {
+                        neuron.value = 0;
+                        continue;
+                    }
                     neuron.calculateValueWithIncommingConnections(c, this);
                 }
             }
