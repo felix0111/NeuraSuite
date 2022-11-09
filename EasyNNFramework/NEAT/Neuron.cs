@@ -33,6 +33,8 @@ namespace EasyNNFramework {
                     return Math.Max(0, sum);
                 case ActivationFunction.SELU:
                     return sum > 0 ? l * sum : l * a * ((float) Math.Exp(sum) - 1f);
+                case ActivationFunction.IDENTITY:
+                    return sum;
                 default:
                     return sum;
             }
@@ -64,6 +66,6 @@ namespace EasyNNFramework {
 
     public enum NeuronType {Input = 0, Hidden = 1, Action = 2}
 
-    public enum ActivationFunction {GELU = 0, TANH = 1, SIGMOID = 2, SWISH = 3, RELU = 4, SELU = 5}
+    public enum ActivationFunction {GELU = 0, TANH = 1, SIGMOID = 2, SWISH = 3, RELU = 4, SELU = 5, IDENTITY = 6}
 
 }
