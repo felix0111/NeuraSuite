@@ -139,7 +139,7 @@ namespace EasyNNFramework {
             foreach (Layer hiddenLayer in layerManager.getAllHiddenLayers()) {
                 foreach (Neuron hiddenNeuron in hiddenLayer.neurons.Values.ToList()) {
                     //if no connection found, remove
-                    if (!startingS.Contains(hiddenNeuron.name) && !endingS.Contains(hiddenNeuron.name)) {
+                    if (!startingS.Contains(hiddenNeuron.name) || !endingS.Contains(hiddenNeuron.name)) {
                         hiddenLayer.neurons.Remove(hiddenNeuron.name);
                     }
                 }
