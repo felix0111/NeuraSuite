@@ -165,23 +165,24 @@ namespace EasyNNFramework {
             }
 
             //add sums and apply function
-            List<Connection> pending = connectionList.Values.ToList();
+            List<Neuron> summed = new List<Neuron>();
             int currentLayer = 2;
-            while (pending.Count != 0) {
-                List<Neuron> summed = new List<Neuron>();
-                foreach (Connection connection in pending.ToList()) {
-                    if (connection.toNeuron.layer == currentLayer) {
-                        connection.toNeuron.value += connection.weight * connection.fromNeuron.value;
-                        summed.Add(connection.toNeuron);
-                        pending.Remove(connection);
+            foreach (Connection connection in connectionList.Values) {
+                //if next layer, apply function
+                if (currentLayer != connection.toNeuron.layer) {
+                    currentLayer++;
+                    foreach (Neuron n in summed) {
+                        n.value = Neuron.getFunctionValue(n.function, n.value);
                     }
+                    summed.Clear();
                 }
 
-                foreach (Neuron neuron in summed) {
-                    neuron.value = Neuron.getFunctionValue(neuron.function, neuron.value);
-                }
+                connection.toNeuron.value += connection.fromNeuron.value * connection.weight;
+                summed.Add(connection.toNeuron);
+            }
 
-                currentLayer++;
+            foreach (Neuron n in summed) {
+                n.value = Neuron.getFunctionValue(n.function, n.value);
             }
         }
 

@@ -23,6 +23,8 @@ namespace EasyNNFramework {
                 network.connectionList[startNeuron.name+endNeuron.name].weight = weight;
             } else {
                 network.connectionList.Add(startNeuron.name+endNeuron.name, new Connection(weight, startNeuron, endNeuron));
+                network.connectionList = network.connectionList.OrderBy(o => o.Value.toNeuron.layer)
+                    .ToDictionary(x => x.Key, x => x.Value);
             }
         }
 
