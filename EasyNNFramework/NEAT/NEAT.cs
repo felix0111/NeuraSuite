@@ -157,31 +157,31 @@ namespace EasyNNFramework {
 
         public void calculateNetwork() {
 
-            var vals = connectionList.Values.ToList();
-            List<Connection> c = new List<Connection>();
-            
-            foreach (Layer layer in layerManager.allLayers) {
-                if (layer.name == "input") {
-                    continue;
+            //reset all hidden and action values
+            for (int i = 2; i <= layerManager.layerCount; i++) {
+                foreach (Neuron neuron in layerManager.getLayer(i).neurons.Values) {
+                    neuron.value = 0f;
+                }
+            }
+
+            //add sums and apply function
+            List<Connection> pending = connectionList.Values.ToList();
+            int currentLayer = 2;
+            while (pending.Count != 0) {
+                List<Neuron> summed = new List<Neuron>();
+                foreach (Connection connection in pending.ToList()) {
+                    if (connection.toNeuron.layer == currentLayer) {
+                        connection.toNeuron.value += connection.weight * connection.fromNeuron.value;
+                        summed.Add(connection.toNeuron);
+                        pending.Remove(connection);
+                    }
                 }
 
-                foreach (Neuron neuron in layer.neurons.Values) {
-                    //list containing all connections ending at current neuron
-                    c.Clear();
-                    for (int i = 0; i < vals.Count; i++) {
-                        if (vals[i].toNeuron.Equals(neuron)) {
-                            c.Add(vals[i]);
-                        }
-                    }
-
-                    //if no incomming connection
-                    //should not happen !exception are action neurons!
-                    if (c.Count == 0) {
-                        neuron.value = 0;
-                        continue;
-                    }
-                    neuron.calculateValueWithIncommingConnections(c, this);
+                foreach (Neuron neuron in summed) {
+                    neuron.value = Neuron.getFunctionValue(neuron.function, neuron.value);
                 }
+
+                currentLayer++;
             }
         }
 
