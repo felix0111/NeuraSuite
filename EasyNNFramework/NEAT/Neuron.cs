@@ -40,16 +40,6 @@ namespace EasyNNFramework {
             }
         }
 
-        public void calculateValueWithIncommingConnections(List<Connection> list, NEAT network) {
-            float sum = 0f;
-            
-            foreach (Connection c in list) {
-                sum += c.fromNeuron.value * c.weight;
-            }
-            
-            value = getFunctionValue(function, sum);
-        }
-
         public override bool Equals(object obj) {
             return this.Equals(obj as Neuron);
         }
