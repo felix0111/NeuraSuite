@@ -1,15 +1,10 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EasyNNFramework {
     [Serializable]
     public class LayerManager {
-        
+
         public List<Layer> allLayers;
 
         public LayerManager(Dictionary<string, Neuron> _inputNeurons, Dictionary<string, Neuron> _actionNeurons) {
@@ -33,18 +28,22 @@ namespace EasyNNFramework {
         }
 
         public Layer getLayer(int layerCount) {
-            return allLayers[layerCount-1];
+            return allLayers[layerCount - 1];
         }
 
         public Layer getRandomHiddenLayer(System.Random rndObj) {
-            return allLayers[rndObj.Next(1, allLayers.Count-1)];
+            if (layerCount > 2) {
+                return allLayers[rndObj.Next(1, allLayers.Count - 1)];
+            }
+
+            throw new Exception("Couldn't get random hidden layer because there are no hidden layers!");
         }
 
         public List<Layer> getAllHiddenLayers() {
             if (allLayers.Count > 2) {
-                return allLayers.GetRange(1, allLayers.Count-2);
+                return allLayers.GetRange(1, allLayers.Count - 2);
             }
-            
+
             throw new Exception("No hidden layers found!");
 
         }
@@ -54,7 +53,7 @@ namespace EasyNNFramework {
         }
 
         public Layer actionLayer {
-            get { return allLayers[allLayers.Count-1]; }
+            get { return allLayers[allLayers.Count - 1]; }
         }
 
         public int layerCount {
@@ -67,7 +66,7 @@ namespace EasyNNFramework {
         public Dictionary<string, Neuron> neurons;
         public readonly string name;
 
-        public Layer (string _name) {
+        public Layer(string _name) {
             name = _name;
             neurons = new Dictionary<string, Neuron>();
         }
