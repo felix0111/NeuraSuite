@@ -90,12 +90,13 @@ namespace EasyNNFramework {
                     if (rndConnection.toNeuron.layer - rndConnection.fromNeuron.layer > 1) {
                         newNeuronLayer = layerManager.getLayer(rndConnection.fromNeuron.layer + 1);
                     } else {
-                        newNeuronLayer = layerManager.addHiddenLayerBeforeAnother(layerManager.getLayer(higherLayerNeuron.layer));
+                        newNeuronLayer = layerManager.addHiddenLayerBeforeAnother(layerManager.getLayer(rndConnection.toNeuron.layer));
                     }
 
                     //create neuron between start and end
                     Neuron newHidden = new Neuron((rndConnection.fromNeuron.layer + 1) + "hidden" + counter, NeuronType.Hidden, hiddenActivationFunction);
                     newNeuronLayer.neurons.Add(newHidden.name, newHidden);
+                    recalculateNeuronLayer();
 
                     counter++;
 
