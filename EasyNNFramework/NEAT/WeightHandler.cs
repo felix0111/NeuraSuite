@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 
 namespace EasyNNFramework {
     [Serializable]
@@ -28,6 +29,8 @@ namespace EasyNNFramework {
                 }
 
                 return;
+            } else if (startNeuron.layer >= endNeuron.layer) {
+                throw new Exception("Can't add weight to lower layer neuron!");
             }
 
             isAvailable = network.connectionList.ContainsKey(startNeuron.name + endNeuron.name);
@@ -51,6 +54,8 @@ namespace EasyNNFramework {
                 } else {
                     return false;
                 }
+            } else if (startNeuron.layer >= endNeuron.layer) {
+                throw new Exception("Can't remove weight because a connection to a lower layer neuron can never exist.");
             }
 
 
