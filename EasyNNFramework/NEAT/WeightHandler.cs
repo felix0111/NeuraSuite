@@ -22,9 +22,7 @@ namespace EasyNNFramework {
 
             if (startNeuron.type == NeuronType.Action) {
                 isAvailable = network.recurrentConnectionList.ContainsKey(startNeuron.name + endNeuron.name);
-                if (isAvailable) {
-                    network.recurrentConnectionList[startNeuron.name + endNeuron.name].weight = weight;
-                } else {
+                if (!isAvailable) {
                     network.recurrentConnectionList.Add(startNeuron.name + endNeuron.name, new Connection(weight, startNeuron, endNeuron));
                 }
 
@@ -34,12 +32,30 @@ namespace EasyNNFramework {
             }
 
             isAvailable = network.connectionList.ContainsKey(startNeuron.name + endNeuron.name);
-            if (isAvailable) {
-                network.connectionList[startNeuron.name + endNeuron.name].weight = weight;
-            } else {
+            if (!isAvailable) {
                 network.connectionList.Add(startNeuron.name + endNeuron.name, new Connection(weight, startNeuron, endNeuron));
                 network.connectionList = network.connectionList.OrderBy(o => o.Value.toNeuron.layer)
                     .ToDictionary(x => x.Key, x => x.Value);
+            }
+        }
+
+        public static void updateWeight(Neuron startNeuron, Neuron endNeuron, float weight, NEAT network) {
+            bool isAvailable;
+
+            if (startNeuron.type == NeuronType.Action) {
+                isAvailable = network.recurrentConnectionList.ContainsKey(startNeuron.name + endNeuron.name);
+                if (isAvailable) {
+                    network.recurrentConnectionList[startNeuron.name + endNeuron.name].weight = weight;
+                }
+
+                return;
+            } else if (startNeuron.layer >= endNeuron.layer) {
+                throw new Exception("Can't update weight going to lower layer neuron!");
+            }
+
+            isAvailable = network.connectionList.ContainsKey(startNeuron.name + endNeuron.name);
+            if (isAvailable) {
+                network.connectionList[startNeuron.name + endNeuron.name].weight = weight;
             }
         }
 
