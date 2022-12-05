@@ -34,7 +34,7 @@ namespace EasyNNFramework {
             isAvailable = network.connectionList.ContainsKey(startNeuron.name + endNeuron.name);
             if (!isAvailable) {
                 network.connectionList.Add(startNeuron.name + endNeuron.name, new Connection(weight, startNeuron, endNeuron));
-                network.connectionList = network.connectionList.OrderBy(o => o.Value.toNeuron.layer)
+                network.connectionList = network.connectionList.OrderBy(o => o.Value.fromNeuron.layer)
                     .ToDictionary(x => x.Key, x => x.Value);
             }
         }
