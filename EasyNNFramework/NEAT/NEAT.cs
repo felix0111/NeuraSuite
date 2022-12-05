@@ -209,26 +209,25 @@ namespace EasyNNFramework {
                 neuron.value = 0f;
             }
 
-            //input layer is already always "calculated"
-            int currentLayer = 2;
-            do {
-
-                //sum all connections going to current layer
-                foreach (Connection connection in connectionList.Values) {
-                    if (connection.toNeuron.layer == currentLayer) {
-                        connection.toNeuron.value += connection.fromNeuron.value * connection.weight;
+            int currentLayer = 1;
+            //sum all connections going to current layer
+            foreach (Connection connection in connectionList.Values) {
+                if (connection.fromNeuron.layer != currentLayer) {
+                    //run function for all neurons in current layer
+                    foreach (Neuron summedNeuron in layerManager.getLayer(currentLayer + 1).neurons.Values) {
+                        summedNeuron.value = Neuron.getFunctionValue(summedNeuron.function, summedNeuron.value);
                     }
+
+                    currentLayer++;
                 }
 
-                //run function for all neurons in current layer
-                foreach (Neuron summedNeuron in layerManager.getLayer(currentLayer).neurons.Values) {
-                    summedNeuron.value = Neuron.getFunctionValue(summedNeuron.function, summedNeuron.value);
-                }
+                connection.toNeuron.value += connection.fromNeuron.value * connection.weight;
+            }
 
-                //next layer
-                currentLayer++;
-
-            } while (currentLayer <= layerManager.layerCount);
+            //calc last layer
+            foreach (Neuron neuron in layerManager.actionLayer.neurons.Values) {
+                neuron.value = Neuron.getFunctionValue(neuron.function, neuron.value);
+            }
         }
 
         private ActivationFunction getRandomFunction(Random rnd) {
