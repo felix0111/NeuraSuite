@@ -22,7 +22,7 @@ namespace EasyNNFramework {
         }
 
         //chances must add up to 100
-        public void Mutate(System.Random rndObj, float chanceAddUpdateWeight, float chanceRandomizeWeight, float chanceRemoveWeight, float chanceAddNeuron, float chanceRemoveNeuron, float chanceRandomFunction, float chanceAddUpdateRecurrentWeight, ActivationFunction hiddenActivationFunction) {
+        public void Mutate(System.Random rndObj, float chanceAddWeight, float chanceRandomizeWeight, float chanceRemoveWeight, float chanceAddNeuron, float chanceRemoveNeuron, float chanceRandomFunction, float chanceAddRecurrentWeight, float chanceUpdateWeight, ActivationFunction hiddenActivationFunction) {
             List<Neuron> possibleStartNeurons = new List<Neuron>();
             List<Neuron> possibleEndNeurons = new List<Neuron>();
             possibleStartNeurons.AddRange(layerManager.inputLayer.neurons.Values);
@@ -59,13 +59,11 @@ namespace EasyNNFramework {
             bool recalcLayer = false, remUseless = false;
             float rndChance = (float)rndObj.NextDouble();
 
-            if (rndChance <= chanceAddUpdateWeight / 100f) {
-                float weight = WeightHandler.getWeight(lowerLayerNeuron, higherLayerNeuron, this);
-                float rndSign = rndObj.Next(0, 2) * 2 - 1;
-                WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.Clamp(-4f, 4f, weight + rndSign * (float)rndObj.NextDouble()), this);
-            } else if (rndChance <= (chanceAddUpdateWeight + chanceRandomizeWeight) / 100f) {
+            if (rndChance <= chanceAddWeight / 100f) {
                 WeightHandler.addWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.RandomWeight(rndObj), this);
-            } else if (rndChance <= (chanceAddUpdateWeight + chanceRandomizeWeight + chanceRemoveWeight) / 100f) {
+            } else if (rndChance <= (chanceAddWeight + chanceRandomizeWeight) / 100f) {
+                WeightHandler.updateWeight(lowerLayerNeuron, higherLayerNeuron, UtilityClass.RandomWeight(rndObj), this);
+            } else if (rndChance <= (chanceAddWeight + chanceRandomizeWeight + chanceRemoveWeight) / 100f) {
                 if (recurrentConnectionList.Count != 0) {
                     if (rndObj.NextDouble() < 0.5D) {
                         Connection rndConnection = recurrentConnectionList.ElementAt(rndObj.Next(0, recurrentConnectionList.Count)).Value;
@@ -82,7 +80,7 @@ namespace EasyNNFramework {
                 }
                 remUseless = true;
                 recalcLayer = true;
-            } else if (rndChance <= (chanceAddUpdateWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron) / 100f) {
+            } else if (rndChance <= (chanceAddWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron) / 100f) {
                 if (connectionList.Count != 0) {
                     Connection rndConnection = connectionList.ElementAt(rndObj.Next(0, connectionList.Count)).Value;
                     Layer newNeuronLayer;
@@ -106,7 +104,7 @@ namespace EasyNNFramework {
 
                     recalcLayer = true;
                 }
-            } else if (rndChance <= (chanceAddUpdateWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron) / 100f) {
+            } else if (rndChance <= (chanceAddWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron) / 100f) {
                 if (layerManager.layerCount > 2) {
                     Layer rndLayer = layerManager.getRandomHiddenLayer(rndObj);
                     Neuron rndHidden = rndLayer.neurons.ElementAt(rndObj.Next(0, rndLayer.neurons.Count)).Value;
@@ -116,20 +114,31 @@ namespace EasyNNFramework {
                     remUseless = true;
                     recalcLayer = true;
                 }
-            } else if (rndChance <= (chanceAddUpdateWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron + chanceRandomFunction) / 100f) {
+            } else if (rndChance <= (chanceAddWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron + chanceRandomFunction) / 100f) {
                 if (layerManager.layerCount > 2) {
                     Layer rndLayer = layerManager.getRandomHiddenLayer(rndObj);
                     Neuron rndHidden = rndLayer.neurons.ElementAt(rndObj.Next(0, rndLayer.neurons.Count)).Value;
 
                     rndHidden.function = getRandomFunction(rndObj);
                 }
-            } else if (rndChance <= (chanceAddUpdateWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron + chanceRandomFunction + chanceAddUpdateRecurrentWeight) / 100f) {
+            } else if (rndChance <= (chanceAddWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron + chanceRandomFunction + chanceAddRecurrentWeight) / 100f) {
                 if (layerManager.layerCount > 2) {
                     Neuron rndAction = layerManager.actionLayer.neurons.ElementAt(rndObj.Next(0, layerManager.actionLayer.neurons.Count)).Value;
                     Layer rndHiddenLayer = layerManager.getRandomHiddenLayer(rndObj);
                     Neuron rndHidden = rndHiddenLayer.neurons.ElementAt(rndObj.Next(0, rndHiddenLayer.neurons.Count)).Value;
 
                     WeightHandler.addWeight(rndAction, rndHidden, UtilityClass.RandomWeight(rndObj), this);
+                }
+            } else if (rndChance <= (chanceAddWeight + chanceRandomizeWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron + chanceRandomFunction + chanceAddRecurrentWeight + chanceUpdateWeight) / 100f) {
+                List<KeyValuePair<string, Connection>> cons = new List<KeyValuePair<string, Connection>>(connectionList);
+                cons.AddRange(recurrentConnectionList);
+
+                if (cons.Count != 0) {
+                    Connection rndConnection = cons.ElementAt(rndObj.Next(0, cons.Count)).Value;
+
+                    float weight = WeightHandler.getWeight(rndConnection.fromNeuron, rndConnection.toNeuron, this);
+                    float rndSign = rndObj.Next(0, 2) * 2 - 1;
+                    WeightHandler.updateWeight(rndConnection.fromNeuron, rndConnection.toNeuron, UtilityClass.Clamp(-4f, 4f, weight + rndSign * (float)rndObj.NextDouble()), this);
                 }
             }
 
