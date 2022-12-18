@@ -57,7 +57,6 @@ namespace EasyNNFramework {
                 w.Stop();
                 Console.WriteLine(w.ElapsedMilliseconds);
                 generations++;
-                Console.WriteLine("Best fitness: " + networks.Last().Value);
 
                 if (generations % 50 == 0) {
                     Console.WriteLine(networks.Last().Key.connectionList.Count);
