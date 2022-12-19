@@ -1,5 +1,7 @@
 #include "NEAT.h"
 
+#include <ctime>
+
 using namespace std;
 
 NEAT::NEAT(unordered_map<string, Neuron> inputNeurons, unordered_map<string, Neuron> actionNeurons)
@@ -9,9 +11,22 @@ NEAT::NEAT(unordered_map<string, Neuron> inputNeurons, unordered_map<string, Neu
 	counter = 0;
 }
 
-void NEAT::AddConnection(string from, string to, double value)
+void NEAT::AddConnection(string from, string to, double value, bool changeIfExists)
 {
-	_weights.emplace(to, Weight(from, to, value));
+	try
+	{
+		Weight *w = GetConnection(from, to);
+		if(changeIfExists)
+		{
+			w->_value = value;
+		}
+	}
+	catch (exception e)
+	{
+		_weights.emplace(to, Weight(from, to, value));
+	}
+
+	
 }
 
 void NEAT::RemoveConnection(string from, string to)
@@ -134,9 +149,19 @@ void NEAT::AddHiddenNeuron(string from, string to, double weightToHidden, double
 	}
 
 	RemoveConnection(from, to);
-	AddConnection(from, name, weightToHidden);
-	AddConnection(name, to, weightOffHidden);
+	AddConnection(from, name, weightToHidden, false);
+	AddConnection(name, to, weightOffHidden, false);
 	counter++;
+}
+
+void NEAT::RemoveHiddenNeuron(Neuron *n)
+{
+	_hiddenLayers[n->layerIndex].erase(n->_name);
+}
+
+void NEAT::RemoveHiddenNeuron(std::string name)
+{
+	_hiddenLayers[GetNeuron(name)->layerIndex].erase(name);
 }
 
 std::unordered_map<std::string, Neuron>* NEAT::AddHiddenLayer(int atIndex)
@@ -164,6 +189,72 @@ void NEAT::UpdateLayerInformation()
 	{
 		neuron.second.layerIndex = _hiddenLayers.size();
 	}
+}
+
+void NEAT::Mutate(double chanceAddWeight, double chanceRandomizeWeight, double chanceUpdateWeight, double chanceRemoveWeight, double chanceAddNeuron, double chanceRemoveNeuron, double chanceRandomFunction, ActivationFunction hiddenActivationFunction, double rndNumber)
+{
+	srand(time(NULL) + rand());
+
+	if(rndNumber <= chanceAddWeight)
+	{
+		restart:
+		Neuron in;
+		Neuron out;
+		if(_hiddenLayers.empty())
+		{
+			in = *GetRandomNeuron(_inputNeurons);
+			out = *GetRandomNeuron(_actionNeurons);
+		} else
+		{
+			rand() % 2 == 0 ? in = *GetRandomNeuron(_inputNeurons) : in = *GetRandomNeuron(_hiddenLayers[rand() % _hiddenLayers.size()]);
+			rand() % 2 == 0 ? out = *GetRandomNeuron(_hiddenLayers[rand() % _hiddenLayers.size()]) : out = *GetRandomNeuron(_actionNeurons);
+		}
+
+		if(in.layerIndex >= out.layerIndex)
+		{
+			goto restart;
+		}
+
+		AddConnection(in._name, out._name, (rand() % 400) / 100.0, false);
+
+	} else if(rndNumber <= chanceAddWeight + chanceRandomizeWeight)
+	{
+		auto it = _weights.begin();
+		advance(it, rand() % _weights.size());
+		it->second._value = (rand() % 400) / 100.0;
+	}
+	else if (rndNumber <= chanceAddWeight + chanceRandomizeWeight + chanceUpdateWeight)
+	{
+		auto it = _weights.begin();
+		advance(it, rand() % _weights.size());
+		double multiplier = (800.0 + rand() % 400) / 100.0;
+		it->second._value = max(-400.0, min(it->second._value*multiplier, 400.0));
+	}
+	else if (rndNumber <= chanceAddWeight + chanceRandomizeWeight + chanceUpdateWeight + chanceRemoveWeight)
+	{
+		auto it = _weights.begin();
+		advance(it, rand() % _weights.size());
+		RemoveConnection(it->second._in, it->second._out);
+	}
+	else if (rndNumber <= chanceAddWeight + chanceRandomizeWeight + chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron)
+	{
+		auto it = _weights.begin();
+		advance(it, rand() % _weights.size());
+		AddHiddenNeuron(it->second._in, it->second._out, it->second._value, 1.0, hiddenActivationFunction);
+	}
+	else if (rndNumber <= chanceAddWeight + chanceRandomizeWeight + chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron)
+	{
+		RemoveHiddenNeuron(GetRandomNeuron(_hiddenLayers[rand() % _hiddenLayers.size()]));
+	}
+	else if (rndNumber <= chanceAddWeight + chanceRandomizeWeight + chanceUpdateWeight + chanceRemoveWeight + chanceAddNeuron + chanceRemoveNeuron + chanceRandomFunction)
+	{
+		Neuron* rnd;
+		rand() % 2 == 0 ? rnd = GetRandomNeuron(_hiddenLayers[rand() % _hiddenLayers.size()]) : rnd = GetRandomNeuron(_actionNeurons);
+		rnd->_activationFunction = static_cast<ActivationFunction>(rand() % 7);
+	}
+
+	RemoveUseless();
+	UpdateLayerInformation();
 }
 
 void NEAT::CalculateNetwork()
@@ -204,5 +295,54 @@ void NEAT::CalculateNetwork()
 		}
 		actionNeuronPair.second._value = Neuron::GetFunctionValue(actionNeuronPair.second._activationFunction, actionNeuronPair.second._value);
 		actionNeuronPair.second.calculated = true;
+	}
+}
+
+Neuron* NEAT::GetRandomNeuron(std::unordered_map<std::string, Neuron>& map)
+{
+	auto it = map.begin();
+	advance(it, rand() % map.size());
+	return &it->second;
+}
+
+void NEAT::RemoveUseless()
+{
+	unordered_multimap<string, string> commingFrom;
+	unordered_multimap<string, string> goingTo;
+	for (auto &weight : _weights)
+	{
+		commingFrom.emplace(weight.second._in, weight.second._in);
+		goingTo.emplace(weight.second._out, weight.second._out);
+	}
+
+	//remove useless neurons
+	for (int i = 0; i < _hiddenLayers.size(); i++)
+	{
+		//loop through all neurons
+		auto it = _hiddenLayers[i].begin();
+		while (it != _hiddenLayers[i].end())
+		{
+			//check if no connection on either side
+			if(!commingFrom.count(it->first) || !goingTo.count(it->first))
+			{
+				it = _hiddenLayers[i].erase(it);
+			} else
+			{
+				++it;
+			}
+		}
+	}
+
+	//remove useless layer
+	auto it = _hiddenLayers.begin();
+	while(it != _hiddenLayers.end())
+	{
+		if(it->empty())
+		{
+			it = _hiddenLayers.erase(it);
+		} else
+		{
+			++it;
+		}
 	}
 }

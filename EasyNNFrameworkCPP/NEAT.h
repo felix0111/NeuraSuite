@@ -14,12 +14,17 @@ public:
 
 	//misc functions
 	void CalculateNetwork();
-	void AddConnection(std::string from, std::string to, double value);
+	void AddConnection(std::string from, std::string to, double value, bool changeIfExists);
 	void RemoveConnection(std::string from, std::string to);
 	Weight *GetConnection(std::string from, std::string to);
 	Neuron *GetNeuron(std::string name);
 	void AddHiddenNeuron(std::string from, std::string to, double weightToHidden, double weightOffHidden, ActivationFunction activationFunction);
+	void RemoveHiddenNeuron(std::string name);
+	void RemoveHiddenNeuron(Neuron *n);
+	void RemoveUseless();
 	void UpdateLayerInformation();
+	void Mutate(double chanceAddWeight, double chanceRandomizeWeight, double chanceUpdateWeight, double chanceRemoveWeight, double chanceAddNeuron, double chanceRemoveNeuron, double chanceRandomFunction, ActivationFunction hiddenActivationFunction, double rndNumber);
+	Neuron* GetRandomNeuron(std::unordered_map<std::string, Neuron> &map);
 
 	std::unordered_map<std::string, Neuron> _inputNeurons;
 	std::vector<std::unordered_map<std::string, Neuron>> _hiddenLayers;
