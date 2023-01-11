@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
+using System.Runtime.CompilerServices;
+using EasyNNFramework.NEAT;
 
-namespace EasyNNFramework {
+namespace EasyNNFramework.NEAT {
     public static class DebugProgram {
 
         private const int networkCount = 200;
@@ -26,6 +27,7 @@ namespace EasyNNFramework {
             float generations = 1f;
             networks = runXOR(networks, rnd);
             Stopwatch w = new Stopwatch();
+            networks.First().Key.layerManager.inputLayer.neurons.First().Value.value = 1f;
             do {
                 if (generations >= maxGens) break;
 
@@ -33,34 +35,35 @@ namespace EasyNNFramework {
                 //get best performing networks
                 networks.RemoveRange(0, networkCount/2);
                 for (int i = 0; i < networkCount/2 ; i++) {
-                    networks.Add(new KeyValuePair<NEAT, float>(networks[i].Key.DeepClone(), networks[i].Value));
+                    //networks.Add(new KeyValuePair<NEAT, float>(networks[i].Key.DeepClone(), networks[i].Value));
+                    networks.Add(new KeyValuePair<NEAT, float>(new NEAT(networks[i].Key), networks[i].Value));
                 }
                 w.Stop();
-                Console.WriteLine(w.ElapsedMilliseconds);
+                Console.WriteLine("Cloning time: " + w.ElapsedMilliseconds);
                 w.Reset();
 
                 w.Start();
                 foreach (KeyValuePair<NEAT, float> pair in networks.Take(networks.Count-10)) {
                     if (rnd.NextDouble() < rndMutation) {
                         for (int j = 0; j < rnd.Next(1, 20); j++) {
-                            //child.Key.Mutate(rnd, 20f, 20f, 25f, 20f, 15f, 0f, 0f, ActivationFunction.SWISH);
                             pair.Key.Mutate(rnd, 25f, 0f, 5f, 3f, 7f, 0f, 0f, 60f, ActivationFunction.SWISH);
                         }
                     }
                 }
                 w.Stop();
-                Console.WriteLine(w.ElapsedMilliseconds);
+                Console.WriteLine("Mutating time: " + w.ElapsedMilliseconds);
                 w.Reset();
 
                 w.Start();
                 networks = runXOR(networks, rnd);
                 w.Stop();
-                Console.WriteLine(w.ElapsedMilliseconds);
+                Console.WriteLine("Calculating time: " + w.ElapsedMilliseconds);
                 generations++;
 
                 if (generations % 50 == 0) {
-                    Console.WriteLine(networks.Last().Key.connectionList.Count);
-                    Console.WriteLine(networks.Last().Key.layerManager.allLayers.Sum(o => o.neurons.Count) - 3);
+                    Console.WriteLine("Connection count: " + networks.Last().Key.connectionList.Count);
+                    Console.WriteLine("Neuron count: " + (networks.Last().Key.layerManager.allLayers.Sum(o => o.neurons.Count) - 3));
+                    Console.WriteLine("Average fitness: " + (networks.Skip(190).Sum(x => x.Value) / 9f) );
                 }
 
             } while (networks.Count(o => o.Value >= 0.98f) < 10);
@@ -94,9 +97,9 @@ namespace EasyNNFramework {
         private static float calculateXOR(int in1, int in2, int in3, NEAT neat) {
 
             //set inputs
-            neat.layerManager.inputLayer.neurons.ElementAt(0).Value.value = in1;
-            neat.layerManager.inputLayer.neurons.ElementAt(1).Value.value = in2;
-            neat.layerManager.inputLayer.neurons.ElementAt(2).Value.value = in3;
+            neat.layerManager.inputLayer.neurons[0].value = in1;
+            neat.layerManager.inputLayer.neurons[1].value = in2;
+            neat.layerManager.inputLayer.neurons[2].value = in3;
             
             neat.calculateNetwork();
 
@@ -104,7 +107,7 @@ namespace EasyNNFramework {
             int expectedOutput = logicXOR(logicXOR(in1, in2), in3);
 
             //out
-            float output = neat.layerManager.actionLayer.neurons["out1"].value;
+            float output = neat.layerManager.actionLayer.neurons.Values.ElementAt(0).value;
             
             //converging points (amount of correct / amount of input configs)
             return 1f - Math.Abs(output - expectedOutput);
@@ -119,34 +122,27 @@ namespace EasyNNFramework {
         }
 
         private static NEAT getStartingNetwork(int startingMutations, Random rnd) {
-            getDicts(out Dictionary<string, Neuron> ins, out Dictionary<string, Neuron> outs);
-            NEAT neatTest = new NEAT(ins, outs);
-
-            for (int i = 0; i < startingMutations; i++) {
-                neatTest.Mutate(rnd, 80f, 0f, 0f, 5f, 0f, 0f, 0f, 0f, ActivationFunction.SWISH);
-            }
-
-
-            return neatTest;
+            getDicts(out List<Neuron> ins, out List<Neuron> outs);
+            return new NEAT(ins, outs);
         }
 
-        private static void getDicts(out Dictionary<string, Neuron> input, out Dictionary<string, Neuron> output) {
-            Neuron in1 = new Neuron("in1", NeuronType.Input, default);
-            Neuron in2 = new Neuron("in2", NeuronType.Input, default);
-            Neuron in3 = new Neuron("in3", NeuronType.Input, default);
-            Neuron bias = new Neuron("bias", NeuronType.Input, default);
-            Neuron out1 = new Neuron("out1", NeuronType.Action, ActivationFunction.SIGMOID);
+        private static void getDicts(out List<Neuron> input, out List<Neuron> output) {
+            Neuron in1 = new Neuron( -1, ActivationFunction.IDENTITY);
+            Neuron in2 = new Neuron(-1, ActivationFunction.IDENTITY);
+            Neuron in3 = new Neuron(-1, ActivationFunction.IDENTITY);
+            Neuron bias = new Neuron(-1, ActivationFunction.IDENTITY);
+            Neuron out1 = new Neuron(-1, ActivationFunction.SIGMOID);
 
-            input = new Dictionary<string, Neuron>();
-            output = new Dictionary<string, Neuron>();
+            input = new List<Neuron>();
+            output = new List<Neuron>();
 
             bias.value = 1f;
 
-            input.Add("in1", in1);
-            input.Add("in2", in2);
-            input.Add("in3", in3);
-            input.Add("bias", bias);
-            output.Add("out1", out1);
+            input.Add(in1);
+            input.Add(in2);
+            input.Add(in3);
+            input.Add(bias);
+            output.Add(out1);
         }
     }
 }
