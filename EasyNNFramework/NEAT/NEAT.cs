@@ -13,11 +13,11 @@ namespace EasyNNFramework.NEAT {
 
         public int IDCounter { get; private set; }
 
-        //create a new neural network with predefined input and output neurons
-        public NEAT(List<Neuron> _inputNeurons, List<Neuron> _actionNeurons) {
-            layerManager = new LayerManager(makeIDDict(_inputNeurons), makeIDDict(_actionNeurons));
+        public NEAT(Dictionary<int, Neuron> _inputNeurons, Dictionary<int, Neuron> _actionNeurons, int highestPredefinedNeuronID) {
+            layerManager = new LayerManager(_inputNeurons, _actionNeurons);
             connectionList = new Dictionary<int, List<Connection>>();
             recurrentConnectionList = new Dictionary<int, List<Connection>>();
+            IDCounter = highestPredefinedNeuronID + 1;
         }
 
         public NEAT(NEAT neat) {
@@ -33,18 +33,6 @@ namespace EasyNNFramework.NEAT {
             recurrentConnectionList = UtilityClass.CopyConnectionDictionary(neat.recurrentConnectionList);
 
             IDCounter = neat.IDCounter;
-        }
-
-        public Dictionary<int, Neuron> makeIDDict(List<Neuron> list) {
-            Dictionary<int, Neuron> dict = new Dictionary<int, Neuron>();
-            foreach (Neuron neuron in list) {
-                neuron.ID = IDCounter;
-                dict.Add(IDCounter, neuron);
-
-                IDCounter++;
-            }
-
-            return dict;
         }
 
         //chances must add up to 100
