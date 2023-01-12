@@ -65,7 +65,7 @@ namespace EasyNNFramework.NEAT {
         }
 
         public static bool operator ==(Neuron lf, Neuron ri) {
-            if (lf == null) return (ri == null);
+            if (ReferenceEquals(lf, null)) return ReferenceEquals(ri, null);
 
             return lf.Equals(ri);
         }
