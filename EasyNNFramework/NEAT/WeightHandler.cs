@@ -12,8 +12,8 @@ namespace EasyNNFramework.NEAT {
             //if source is action neuron (recurrent weight)
             if (network.layerManager.actionLayer.neurons.ContainsKey(sourceID)) {
                 //if weight list from source already exists and weight doesnt exist
-                if (network.recurrentConnectionList.TryGetValue(sourceID, out List<Connection> consR) && !consR.Exists(x => x.targetID == targetID)) {
-                    network.recurrentConnectionList[sourceID] = consR.Append(new Connection(targetID, weight)).ToList();
+                if (network.recurrentConnectionList.TryGetValue(sourceID, out List<Connection> consR)) {
+                    if(!consR.Exists(x => x.targetID == targetID)) network.recurrentConnectionList[sourceID] = consR.Append(new Connection(targetID, weight)).ToList();
                 } else {
                     network.recurrentConnectionList.Add(sourceID, new List<Connection>() {new Connection(targetID, weight)});
                 }
@@ -22,8 +22,8 @@ namespace EasyNNFramework.NEAT {
 
             //if normal connection
             //if weight list from source already exists and weight doesnt exist
-            if (network.connectionList.TryGetValue(sourceID, out List<Connection> cons) && !cons.Exists(x => x.targetID == targetID)) {
-                network.connectionList[sourceID] = cons.Append(new Connection(targetID, weight)).ToList();
+            if (network.connectionList.TryGetValue(sourceID, out List<Connection> cons)) {
+                if(!cons.Exists(x => x.targetID == targetID)) network.connectionList[sourceID] = cons.Append(new Connection(targetID, weight)).ToList();
             } else {
                 network.connectionList.Add(sourceID, new List<Connection>() {new Connection(targetID, weight)});
             }
@@ -41,9 +41,11 @@ namespace EasyNNFramework.NEAT {
                 return;
             }
 
-            List<Connection> cons = network.connectionList[sourceID].Where(x => x.targetID != targetID).ToList();
-            cons.Add(new Connection(targetID, weight));
-            network.connectionList[sourceID] = cons;
+            if (network.connectionList.ContainsKey(sourceID)) {
+                List<Connection> cons = network.connectionList[sourceID].Where(x => x.targetID != targetID).ToList();
+                cons.Add(new Connection(targetID, weight));
+                network.connectionList[sourceID] = cons;
+            }
         }
 
         public static void removeWeight(int sourceID, int targetID, NEAT network) {
