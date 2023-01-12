@@ -13,6 +13,8 @@ namespace EasyNNFramework.NEAT {
 
         public int IDCounter { get; private set; }
 
+        private const bool calcPerWeight = true;
+
         public NEAT(Dictionary<int, Neuron> _inputNeurons, Dictionary<int, Neuron> _actionNeurons, int highestPredefinedNeuronID) {
             layerManager = new LayerManager(_inputNeurons, _actionNeurons);
             connectionList = new Dictionary<int, List<Connection>>();
@@ -216,21 +218,43 @@ namespace EasyNNFramework.NEAT {
                 neuron.value = 0f;
             }
 
-            //calculate per neuron
-            for (int i = 0; i < layerManager.layerCount; i++) {
-                foreach (KeyValuePair<int, Neuron> sourceNeuron in layerManager.allLayers[i].neurons) {
+            
 
-                    //calc function value
-                    sourceNeuron.Value.processValue();
+            if (calcPerWeight) {
+                //calculate per weight
+                foreach (var connectionPair in connectionList.ToList()) {
 
-                    //if connections from current neuron exists
-                    if (connectionList.TryGetValue(sourceNeuron.Key, out List<Connection> cons)) {
-                        foreach (Connection con in cons) {
-                            layerManager.getNeuron(con.targetID, i+1).value += sourceNeuron.Value.value * con.weight;
+                    Neuron source = layerManager.getNeuron(connectionPair.Key, 0);
+                    source.processValue();
+
+                    foreach (Connection connectionTarget in connectionPair.Value) {
+                        Neuron target = layerManager.getNeuron(connectionTarget.targetID, 1);
+                        target.value += source.value * connectionTarget.weight;
+                    }
+                }
+
+                //calculate action
+                foreach (var neuron in layerManager.actionLayer.neurons.Values) {
+                    neuron.processValue();
+                }
+            } else {
+                //calculate per neuron
+                for (int i = 0; i < layerManager.layerCount; i++) {
+                    foreach (KeyValuePair<int, Neuron> sourceNeuron in layerManager.allLayers[i].neurons) {
+
+                        //calc function value
+                        sourceNeuron.Value.processValue();
+
+                        //if connections from current neuron exists
+                        if (connectionList.TryGetValue(sourceNeuron.Key, out List<Connection> cons)) {
+                            foreach (Connection con in cons) {
+                                layerManager.getNeuron(con.targetID, i + 1).value += sourceNeuron.Value.value * con.weight;
+                            }
                         }
                     }
                 }
             }
+
         }
 
         private ActivationFunction getRandomFunction(Random rnd) {
