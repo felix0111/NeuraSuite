@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
+using System.Runtime.CompilerServices;
+using EasyNNFramework.NEAT;
 
-namespace EasyNNFramework {
+namespace EasyNNFramework.NEAT {
     public static class DebugProgram {
 
         private const int networkCount = 200;
@@ -26,6 +27,7 @@ namespace EasyNNFramework {
             float generations = 1f;
             networks = runXOR(networks, rnd);
             Stopwatch w = new Stopwatch();
+            networks.First().Key.layerManager.inputLayer.neurons.First().Value.value = 1f;
             do {
                 if (generations >= maxGens) break;
 
@@ -37,12 +39,15 @@ namespace EasyNNFramework {
                     networks.Add(new KeyValuePair<NEAT, float>(new NEAT(networks[i].Key), networks[i].Value));
                 }
                 w.Stop();
-                //Console.WriteLine("Cloning time: " + w.ElapsedMilliseconds);
+
+                Console.WriteLine("Cloning time: " + w.ElapsedMilliseconds);
+
                 w.Reset();
 
                 w.Start();
                 foreach (KeyValuePair<NEAT, float> pair in networks.Take(networks.Count-5)) {
                     if (rnd.NextDouble() < rndMutation) {
+
                         int rndNr = rnd.Next(0, 10);
                         for (int j = 0; j < rndNr; j++) {
                             pair.Key.Mutate(rnd, 10f, 5f, 10f, 10f, 10f, 5f, 0f, 50f, ActivationFunction.SWISH);
@@ -50,13 +55,17 @@ namespace EasyNNFramework {
                     }
                 }
                 w.Stop();
-                //Console.WriteLine("Mutating time: " + w.ElapsedMilliseconds);
+
+                Console.WriteLine("Mutating time: " + w.ElapsedMilliseconds);
+
                 w.Reset();
 
                 w.Start();
                 networks = runXOR(networks, rnd);
                 w.Stop();
-                //Console.WriteLine("Calculating time: " + w.ElapsedMilliseconds);
+
+                Console.WriteLine("Calculating time: " + w.ElapsedMilliseconds);
+
                 generations++;
 
                 for (int i = 0; i < 10; i++) {
@@ -100,9 +109,9 @@ namespace EasyNNFramework {
         private static float calculateXOR(int in1, int in2, int in3, NEAT neat) {
 
             //set inputs
-            neat.layerManager.inputLayer.neurons.ElementAt(0).Value.value = in1;
-            neat.layerManager.inputLayer.neurons.ElementAt(1).Value.value = in2;
-            neat.layerManager.inputLayer.neurons.ElementAt(2).Value.value = in3;
+            neat.layerManager.inputLayer.neurons[0].value = in1;
+            neat.layerManager.inputLayer.neurons[1].value = in2;
+            neat.layerManager.inputLayer.neurons[2].value = in3;
             
             neat.calculateNetwork();
 
@@ -110,7 +119,7 @@ namespace EasyNNFramework {
             int expectedOutput = logicXOR(logicXOR(in1, in2), in3);
 
             //out
-            float output = neat.layerManager.actionLayer.neurons["out1"].value;
+            float output = neat.layerManager.actionLayer.neurons.Values.ElementAt(0).value;
             
             //converging points (amount of correct / amount of input configs)
             return 1f - Math.Abs(output - expectedOutput);
