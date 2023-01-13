@@ -218,8 +218,6 @@ namespace EasyNNFramework.NEAT {
                 neuron.value = 0f;
             }
 
-            
-
             if (calcPerWeight) {
                 //calculate per weight
                 foreach (var connectionPair in connectionList.ToList()) {
