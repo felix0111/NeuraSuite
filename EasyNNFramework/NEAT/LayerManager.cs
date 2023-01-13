@@ -1,74 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace EasyNNFramework {
+namespace EasyNNFramework.NEAT {
     [Serializable]
     public class LayerManager {
 
         public List<Layer> allLayers;
 
-        public LayerManager(Dictionary<string, Neuron> _inputNeurons, Dictionary<string, Neuron> _actionNeurons) {
+        public List<Layer> hiddenLayers {
+            get {
+                if(allLayers.Count <= 2) return new List<Layer>();
+                return allLayers.GetRange(1, allLayers.Count - 2);
+            }
+        }
+        public Layer inputLayer => allLayers[0];
+        public Layer actionLayer => allLayers[allLayers.Count - 1];
+        public int layerCount => allLayers.Count;
+
+        public LayerManager(Dictionary<int, Neuron> inputNeurons, Dictionary<int, Neuron> actionNeurons) {
 
             allLayers = new List<Layer> {
-                new Layer("input") { neurons = _inputNeurons },
-                new Layer("action") { neurons = _actionNeurons }
+                new Layer() { neurons = inputNeurons },
+                new Layer() { neurons = actionNeurons }
             };
         }
 
-        public Layer addHiddenLayerBeforeAnother(Layer another) {
-            int indexAnother = allLayers.IndexOf(another);
+        public Layer addHiddenLayer(int layerIndex) {
 
-            if (indexAnother <= 0) {
-                throw new Exception("Can't add layer before input layer!");
+            if (layerIndex < 1 || layerIndex >= layerCount) {
+                throw new Exception("Layer index out of range!");
             }
-
-            Layer newHidden = new Layer("hidden");
-            allLayers.Insert(indexAnother, newHidden);
-            return newHidden;
-        }
-
-        public Layer getLayer(int layerCount) {
-            return allLayers[layerCount - 1];
+            
+            allLayers.Insert(layerIndex, new Layer());
+            return allLayers[layerIndex];
         }
 
         public Layer getRandomHiddenLayer(System.Random rndObj) {
-            if (layerCount > 2) {
-                return allLayers[rndObj.Next(1, allLayers.Count - 1)];
+            if (layerCount < 3) throw new Exception("Couldn't get random hidden layer because there are no hidden layers!");
+            return hiddenLayers[rndObj.Next(0, layerCount-2)];
+        }
+
+        //layerIndexStart may be used to get even better performance by skipping layers
+        public Neuron getNeuron(int ID, int layerIndexStart = 0) {
+            for (int i = layerIndexStart; i < layerCount; i++) {
+                if (allLayers[i].neurons.TryGetValue(ID, out Neuron n)) return n;
             }
 
-            throw new Exception("Couldn't get random hidden layer because there are no hidden layers!");
-        }
-
-        public List<Layer> getAllHiddenLayers() {
-            if (allLayers.Count > 2) {
-                return allLayers.GetRange(1, allLayers.Count - 2);
-            }
-
-            throw new Exception("No hidden layers found!");
-
-        }
-
-        public Layer inputLayer {
-            get { return allLayers[0]; }
-        }
-
-        public Layer actionLayer {
-            get { return allLayers[allLayers.Count - 1]; }
-        }
-
-        public int layerCount {
-            get { return allLayers.Count; }
+            throw new Exception("Could not find neuron: " + ID);
         }
     }
 
     [Serializable]
     public class Layer {
-        public Dictionary<string, Neuron> neurons;
-        public readonly string name;
+        public Dictionary<int, Neuron> neurons;
 
-        public Layer(string _name) {
-            name = _name;
-            neurons = new Dictionary<string, Neuron>();
+        public Layer() {
+            neurons = new Dictionary<int, Neuron>();
         }
     }
 }
