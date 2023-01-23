@@ -1,30 +1,30 @@
 ﻿using System;
-using System.Net.Mail;
+using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 
 namespace EasyNNFramework.NEAT {
 
     [Serializable]
-    public class Neuron : IEquatable<Neuron> {
-        public float value;
+    public struct Neuron : IEquatable<Neuron> {
+        public float value, lastValue;
         public ActivationFunction function;
-        public int ID;
-        public int LayerIndex(LayerManager lm) {
-            for (int i = 0; i < lm.allLayers.Count; i++) {
-                if (lm.allLayers[i].neurons.ContainsKey(ID)) return i;
-            }
+        public readonly NeuronType type;
+        public List<int> incommingConnections, outgoingConnections;
+        public int ID, activationCount;
 
-            throw new Exception("Could not find neuron ID in any layer!");
-        }
-        public NeuronType Type(LayerManager lm) {
-            int index = LayerIndex(lm);
-            if (index == 0) return NeuronType.Input;
-            if (index == lm.allLayers.Count - 1) return NeuronType.Action;
-            return NeuronType.Hidden;
+        public bool IsReady() {
+            return activationCount == incommingConnections.Count;
         }
 
-        public Neuron(int ID, ActivationFunction _function) {
+        public Neuron(int ID, ActivationFunction _function, NeuronType _type) {
             this.ID = ID;
             function = _function;
+            type = _type;
+            value = 0f;
+            lastValue = 0f;
+            incommingConnections = new List<int>();
+            outgoingConnections = new List<int>();
+            activationCount = 0;
         }
 
         private const float l = 1.0507009873554804934193349852946f;
@@ -60,26 +60,15 @@ namespace EasyNNFramework.NEAT {
             }
         }
 
-        public override bool Equals(object obj) {
-            return this.Equals(obj as Neuron);
-        }
+        public override bool Equals(object obj) => obj is Neuron n && Equals(n);
 
-        public static bool operator ==(Neuron lf, Neuron ri) {
-            if (ReferenceEquals(lf, null)) return ReferenceEquals(ri, null);
-
-            return lf.Equals(ri);
-        }
+        public static bool operator ==(Neuron lf, Neuron ri) => lf.Equals(ri);
 
         public static bool operator !=(Neuron lf, Neuron ri) => !(lf==ri);
 
-        public override int GetHashCode() {
-            return this.ID.GetHashCode();
-        }
+        public override int GetHashCode() => ID.GetHashCode();
 
-        public bool Equals(Neuron obj) {
-            if (obj == null) return false;
-            return obj.ID == ID;
-        }
+        public bool Equals(Neuron obj) => obj.ID == ID;
     }
 
     public enum NeuronType {Input, Hidden, Action}

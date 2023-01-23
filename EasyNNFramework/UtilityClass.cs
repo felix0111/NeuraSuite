@@ -44,23 +44,18 @@ namespace EasyNNFramework {
             throw new InvalidOperationException("Item not found");
         }
 
-        public static Dictionary<int, Neuron> CopyNeuronDictionary(Dictionary<int, Neuron> dict) {
-            Dictionary<int, Neuron> copy = new Dictionary<int, Neuron>(dict.Count);
-            foreach (Neuron neuron in dict.Values) {
-                copy.Add(neuron.ID, new Neuron(neuron.ID, neuron.function));
+        public static Neuron[] CopyNeuronArray(this Neuron[] obj) {
+            Neuron[] cpy = new Neuron[obj.Length];
+            Neuron buffer;
+            for (int i = 0; i < obj.Length; i++) {
+                buffer = obj[i];
+                buffer.incommingConnections = new List<int>(buffer.incommingConnections);
+                buffer.outgoingConnections = new List<int>(buffer.outgoingConnections);
+                cpy[i] = buffer;
             }
 
-            return copy;
-        }
-
-        public static Dictionary<int, List<Connection>> CopyConnectionDictionary(Dictionary<int, List<Connection>> dict) {
-            Dictionary<int, List<Connection>> copy = new Dictionary<int, List<Connection>>(dict.Count);
-            foreach (KeyValuePair<int, List<Connection>> pair in dict) {
-                copy.Add(pair.Key, new List<Connection>(pair.Value));
-            }
-
-            return copy;
-        }
+            return cpy;
+        } 
 
         public static float InverseLerp(float start, float end, float value) {
             return (value - start) / (end - start);

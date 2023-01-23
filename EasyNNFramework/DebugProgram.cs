@@ -20,14 +20,13 @@ namespace EasyNNFramework.NEAT {
 
             //populate dict
             for (int i = 0; i < networkCount; i++) {
-                networks.Add(new KeyValuePair<NEAT, float>(getStartingNetwork(5, rnd), 0f));
+                networks.Add(new KeyValuePair<NEAT, float>(getStartingNetwork(), 0f));
             }
 
             //training
             float generations = 1f;
             networks = runXOR(networks, rnd);
             Stopwatch w = new Stopwatch();
-            networks.First().Key.layerManager.inputLayer.neurons.First().Value.value = 1f;
             do {
                 if (generations >= maxGens) break;
 
@@ -35,7 +34,6 @@ namespace EasyNNFramework.NEAT {
                 //get best performing networks
                 networks.RemoveRange(0, networkCount/2);
                 for (int i = 0; i < networkCount/2 ; i++) {
-                    //networks.Add(new KeyValuePair<NEAT, float>(networks[i].Key.DeepClone(), networks[i].Value));
                     networks.Add(new KeyValuePair<NEAT, float>(new NEAT(networks[i].Key), networks[i].Value));
                 }
                 w.Stop();
@@ -45,12 +43,12 @@ namespace EasyNNFramework.NEAT {
                 w.Reset();
 
                 w.Start();
-                foreach (KeyValuePair<NEAT, float> pair in networks.Take(networks.Count-5)) {
+                for (int i= 0; i < networks.Count-5; i++) {
                     if (rnd.NextDouble() < rndMutation) {
 
                         int rndNr = rnd.Next(0, 10);
                         for (int j = 0; j < rndNr; j++) {
-                            pair.Key.Mutate(rnd, 10f, 5f, 10f, 10f, 10f, 5f, 0f, 50f, ActivationFunction.SWISH);
+                            networks[i].Key.Mutate(rnd, 10f, 5f, 10f, 15f, 5f, 5f, 0f, 50f, ActivationFunction.SWISH);
                         }
                     }
                 }
@@ -73,8 +71,9 @@ namespace EasyNNFramework.NEAT {
                 }
 
                 if (generations % 50 == 0) {
-                    Console.WriteLine("Connection count: " + networks.Last().Key.connectionList.Count);
-                    Console.WriteLine("Neuron count: " + (networks.Last().Key.layerManager.allLayers.Sum(o => o.neurons.Count) - 3));
+                    Console.WriteLine("Connection count: " + networks.Last().Key.connectionList.Length);
+                    Console.WriteLine("Recurrent Connection count: " + networks.Last().Key.recurrentConnectionList.Length);
+                    Console.WriteLine("Neuron count: " + networks.Last().Key.hiddenNeurons.Length);
                     Console.WriteLine("Average fitness: " + (networks.Skip(189).Sum(x => x.Value) / 9f) );
                 }
 
@@ -86,19 +85,20 @@ namespace EasyNNFramework.NEAT {
         private static List<KeyValuePair<NEAT, float>> runXOR(List<KeyValuePair<NEAT, float>> nets, Random rnd) {
             List<KeyValuePair<NEAT, float>> calculatedNets = new List<KeyValuePair<NEAT, float>>();
 
+            NEAT neat;
             for (int i = 0; i < nets.Count; i++) {
 
-                NEAT neat = nets[i].Key;
+                neat = nets[i].Key;
 
                 float fitness = 0f;
-                fitness += calculateXOR(0, 0, 0, neat);
-                fitness += calculateXOR(0, 0, 1, neat);
-                fitness += calculateXOR(0, 1, 0, neat);
-                fitness += calculateXOR(0, 1, 1, neat);
-                fitness += calculateXOR(1, 0, 0, neat);
-                fitness += calculateXOR(1, 0, 1,neat);
-                fitness += calculateXOR(1, 1, 0,neat);
-                fitness += calculateXOR(1, 1, 1,neat);
+                fitness += calculateXOR(0, 0, 0, ref neat);
+                fitness += calculateXOR(0, 0, 1, ref neat);
+                fitness += calculateXOR(0, 1, 0, ref neat);
+                fitness += calculateXOR(0, 1, 1, ref neat);
+                fitness += calculateXOR(1, 0, 0, ref neat);
+                fitness += calculateXOR(1, 0, 1, ref neat);
+                fitness += calculateXOR(1, 1, 0, ref neat);
+                fitness += calculateXOR(1, 1, 1, ref neat);
 
                 calculatedNets.Add(new KeyValuePair<NEAT, float>(neat, fitness/8f));
             }
@@ -106,23 +106,23 @@ namespace EasyNNFramework.NEAT {
             return calculatedNets.OrderBy(o => o.Value).ToList();
         }
 
-        private static float calculateXOR(int in1, int in2, int in3, NEAT neat) {
+        private static float[] outs = new float[1];
+        private static float[] ins = new float[4];
+        private static float calculateXOR(int in1, int in2, int in3, ref NEAT neat) {
 
             //set inputs
-            neat.layerManager.inputLayer.neurons[0].value = in1;
-            neat.layerManager.inputLayer.neurons[1].value = in2;
-            neat.layerManager.inputLayer.neurons[2].value = in3;
+            ins[0] = in1;
+            ins[1] = in2;
+            ins[2] = in3;
+            ins[3] = 1f;
             
-            neat.calculateNetwork();
+            neat.CalculateNetwork(ins, ref outs);
 
             //expected value
             int expectedOutput = logicXOR(logicXOR(in1, in2), in3);
 
-            //out
-            float output = neat.layerManager.actionLayer.neurons.Values.ElementAt(0).value;
-            
             //converging points (amount of correct / amount of input configs)
-            return 1f - Math.Abs(output - expectedOutput);
+            return 1f - Math.Abs(outs[0] - expectedOutput);
         }
 
         private static int logicXOR(int in1, int in2) {
@@ -133,28 +133,26 @@ namespace EasyNNFramework.NEAT {
             return 0;
         }
 
-        private static NEAT getStartingNetwork(int startingMutations, Random rnd) {
-            getDicts(out Dictionary<int, Neuron> ins, out Dictionary<int, Neuron> outs);
-            return new NEAT(ins, outs, 4);
+        private static NEAT getStartingNetwork() {
+            getLists(out List<Neuron> ins, out List<Neuron> outs);
+            return new NEAT(ins.ToArray(), outs.ToArray());
         }
 
-        private static void getDicts(out Dictionary<int, Neuron> input, out Dictionary<int, Neuron> output) {
-            Neuron in1 = new Neuron( 0, ActivationFunction.IDENTITY);
-            Neuron in2 = new Neuron(1, ActivationFunction.IDENTITY);
-            Neuron in3 = new Neuron(2, ActivationFunction.IDENTITY);
-            Neuron bias = new Neuron(3, ActivationFunction.IDENTITY);
-            Neuron out1 = new Neuron(4, ActivationFunction.SIGMOID);
+        private static void getLists(out List<Neuron> input, out List<Neuron> output) {
+            Neuron in1 = new Neuron( 0, ActivationFunction.IDENTITY, NeuronType.Input);
+            Neuron in2 = new Neuron(1, ActivationFunction.IDENTITY, NeuronType.Input);
+            Neuron in3 = new Neuron(2, ActivationFunction.IDENTITY, NeuronType.Input);
+            Neuron bias = new Neuron(3, ActivationFunction.IDENTITY, NeuronType.Input);
+            Neuron out1 = new Neuron(4, ActivationFunction.TANH, NeuronType.Action);
 
-            input = new Dictionary<int, Neuron>();
-            output = new Dictionary<int, Neuron>();
+            input = new List<Neuron>();
+            output = new List<Neuron>();
 
-            bias.value = 1f;
-
-            input.Add(0, in1);
-            input.Add(1, in2);
-            input.Add(2, in3);
-            input.Add(3, bias);
-            output.Add(4, out1);
+            input.Add(in1);
+            input.Add(in2);
+            input.Add(in3);
+            input.Add(bias);
+            output.Add(out1);
         }
     }
 }

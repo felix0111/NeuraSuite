@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace EasyNNFramework.NEAT {
-    [Serializable]
+    /*[Serializable]
     public static class WeightHandler {
 
         //updates weight when already added
@@ -104,15 +104,26 @@ namespace EasyNNFramework.NEAT {
             }
         }
     }
-
+*/
     [Serializable]
-    public struct Connection {
+    public struct Connection : IEquatable<Connection> {
         public float weight;
-        public int targetID;
+        public int targetID, sourceID;
 
-        public Connection(int targetID, float weight) {
+        public Connection(int sourceID, int targetID, float weight) {
+            this.sourceID = sourceID;
             this.targetID = targetID;
             this.weight = weight;
         }
+
+        public override bool Equals(object obj) => obj is Connection n && Equals(n);
+
+        public static bool operator ==(Connection lf, Connection ri) => lf.Equals(ri);
+
+        public static bool operator !=(Connection lf, Connection ri) => !(lf == ri);
+
+        public override int GetHashCode() => (sourceID.GetHashCode() + targetID.GetHashCode() + weight.GetHashCode()).GetHashCode();
+
+        public bool Equals(Connection obj) => obj.sourceID == sourceID && obj.targetID == targetID;
     }
 }
