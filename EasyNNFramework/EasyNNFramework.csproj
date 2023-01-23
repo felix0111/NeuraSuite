@@ -85,9 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugProgram.cs" />
-    <Compile Include="NEAT\LayerManager.cs" />
     <Compile Include="NEAT\Neuron.cs" />
-    <Compile Include="NEAT\WeightHandler.cs" />
     <Compile Include="NEAT\NEAT.cs" />
     <Compile Include="UtilityClass.cs" />
   </ItemGroup>
@@ -116,7 +114,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Release\" />
-    <Folder Include="obj\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
