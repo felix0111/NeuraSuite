@@ -13,8 +13,7 @@ namespace EasyNNFramework.NEAT {
         public Neuron[] inputNeurons;
         public Neuron[] hiddenNeurons;
         public Neuron[] actionNeurons;
-
-        //key is target ID
+        
         public Connection[] connectionList;
         public Connection[] recurrentConnectionList;
 
@@ -23,12 +22,12 @@ namespace EasyNNFramework.NEAT {
         private LayerStructure ls;
 
         public NEAT(Neuron[] inputs, Neuron[] action) {
-            ROinputNeurons = (Neuron[]) inputs.Clone();
-            ROactionNeurons = (Neuron[]) action.Clone();
+            ROinputNeurons = inputs.CopyNeuronArray();
+            ROactionNeurons = action.CopyNeuronArray();
 
-            inputNeurons = (Neuron[]) inputs.Clone();
+            inputNeurons = inputs.CopyNeuronArray();
             hiddenNeurons = Array.Empty<Neuron>();
-            actionNeurons = (Neuron[]) action.Clone();
+            actionNeurons = action.CopyNeuronArray();
 
             connectionList = Array.Empty<Connection>();
             recurrentConnectionList = Array.Empty<Connection>();
