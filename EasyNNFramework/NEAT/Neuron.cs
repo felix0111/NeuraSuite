@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
 
 namespace EasyNNFramework.NEAT {
 
@@ -10,11 +9,7 @@ namespace EasyNNFramework.NEAT {
         public ActivationFunction function;
         public readonly NeuronType type;
         public List<int> incommingConnections, outgoingConnections;
-        public int ID, activationCount;
-
-        public bool IsReady() {
-            return activationCount == incommingConnections.Count;
-        }
+        public int ID;
 
         public Neuron(int ID, ActivationFunction _function, NeuronType _type) {
             this.ID = ID;
@@ -24,7 +19,6 @@ namespace EasyNNFramework.NEAT {
             lastValue = 0f;
             incommingConnections = new List<int>();
             outgoingConnections = new List<int>();
-            activationCount = 0;
         }
 
         private const float l = 1.0507009873554804934193349852946f;

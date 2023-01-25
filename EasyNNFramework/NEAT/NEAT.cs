@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Random = System.Random;
 
@@ -19,6 +20,8 @@ namespace EasyNNFramework.NEAT {
 
         public int IDCounter;
 
+        private LayerStructure ls;
+
         public NEAT(Neuron[] inputs, Neuron[] action) {
             ROinputNeurons = (Neuron[]) inputs.Clone();
             ROactionNeurons = (Neuron[]) action.Clone();
@@ -30,6 +33,8 @@ namespace EasyNNFramework.NEAT {
             connectionList = Array.Empty<Connection>();
             recurrentConnectionList = Array.Empty<Connection>();
             IDCounter = inputs.Length + action.Length;
+
+            ls = new LayerStructure(this);
         }
 
         public NEAT(in NEAT neat) {
@@ -44,6 +49,8 @@ namespace EasyNNFramework.NEAT {
             recurrentConnectionList = (Connection[]) neat.recurrentConnectionList.Clone();
 
             IDCounter = neat.IDCounter;
+
+            ls = new LayerStructure(this);
         }
 
         //chances must add up to 100
@@ -117,6 +124,8 @@ namespace EasyNNFramework.NEAT {
 
                 useless = UselessHidden();
             } while (useless.Count != 0);
+
+            ls = new LayerStructure(this);
         }
 
         private List<Neuron> UselessHidden() {
@@ -239,17 +248,14 @@ namespace EasyNNFramework.NEAT {
             //update neuron values
             for (int i = 0; i < inputNeurons.Length; i++) {
                 inputNeurons[i].lastValue = inputNeurons[i].value;
-                inputNeurons[i].activationCount = 0;
                 inputNeurons[i].value = inputNeuronValues[i];
             }
             for (int i = 0; i < hiddenNeurons.Length; i++) {
                 hiddenNeurons[i].lastValue = hiddenNeurons[i].value;
-                hiddenNeurons[i].activationCount = 0;
                 hiddenNeurons[i].value = 0f;
             }
             for (int i = 0; i < actionNeurons.Length; i++) {
                 actionNeurons[i].lastValue = actionNeurons[i].value;
-                actionNeurons[i].activationCount = 0;
                 actionNeurons[i].value = 0f;
             }
 
@@ -260,34 +266,39 @@ namespace EasyNNFramework.NEAT {
 
             //feed forward input neurons
             for (int i = 0; i < inputNeurons.Length; i++) {
-                foreach (int target in inputNeurons[i].outgoingConnections) {
-                    GetNeuronRef(target).value += GetConnection(i, target).weight * inputNeurons[i].value;
-                    GetNeuronRef(target).activationCount += 1;
+                for (int j = 0; j < inputNeurons[i].outgoingConnections.Count; j++) {
+                    int targetID = inputNeurons[i].outgoingConnections[j];
+                    int targetIndex = GetHiddenIndex(targetID);
+
+                    if (targetIndex == -1) {
+                        actionNeurons[targetID-ROinputNeurons.Length].value += GetConnection(i, targetID).weight * inputNeurons[i].value;
+                    } else {
+                        hiddenNeurons[targetIndex].value += GetConnection(i, targetID).weight * inputNeurons[i].value;
+                    }
                 }
             }
 
-            //calc ready hidden neurons
-            for (int i = 0; i < hiddenNeurons.Length; i++) {
-                neuronsToCalcBuffer.Add(i);
-            }
-            while (neuronsToCalcBuffer.Count != 0) {
-                for (int i = neuronsToCalcBuffer.Count - 1; i >= 0; i--) {
-                    int hiddenIndex = neuronsToCalcBuffer[i];
+            //calculate hidden
+            for (int layerIndex = 1; layerIndex < ls.layerArray.Count-1; layerIndex++) {
+                for (int i = 0; i < ls.layerArray[layerIndex].Length; i++) {
+                    int hiddenIndex = GetHiddenIndex(ls.layerArray[layerIndex][i]);
 
-                    if (hiddenNeurons[hiddenIndex].IsReady()) {
-                        hiddenNeurons[hiddenIndex].processValue();
-                        foreach (int target in hiddenNeurons[hiddenIndex].outgoingConnections) {
-                            GetNeuronRef(target).value += GetConnection(hiddenNeurons[hiddenIndex].ID, target).weight * hiddenNeurons[hiddenIndex].value;
-                            GetNeuronRef(target).activationCount += 1;
+                    hiddenNeurons[hiddenIndex].processValue();
+                    for(int j = 0; j < hiddenNeurons[hiddenIndex].outgoingConnections.Count; j++) {
+                        int targetID = hiddenNeurons[hiddenIndex].outgoingConnections[j];
+                        int targetIndex = GetHiddenIndex(targetID);
+
+                        if (targetIndex == -1) {
+                            actionNeurons[targetID - ROinputNeurons.Length].value += GetConnection(hiddenNeurons[hiddenIndex].ID, targetID).weight * hiddenNeurons[hiddenIndex].value;
+                        } else {
+                            hiddenNeurons[targetIndex].value += GetConnection(hiddenNeurons[hiddenIndex].ID, targetID).weight * hiddenNeurons[hiddenIndex].value;
                         }
-                        neuronsToCalcBuffer.RemoveAt(i);
                     }
                 }
             }
 
             //calculate action
             for (int i = 0; i < ROactionNeurons.Length; i++) {
-
                 actionNeurons[i].processValue();
                 actionNeuronValues[i] = actionNeurons[i].value;
             }
@@ -321,6 +332,7 @@ namespace EasyNNFramework.NEAT {
         }
     }
 
+    [Serializable]
     public struct LayerStructure {
 
         public List<int[]> layerArray;
