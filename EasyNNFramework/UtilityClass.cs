@@ -104,64 +104,66 @@ public static class UtilityClass {
         tmp.RemoveDependingConnections(toRemove.ID);
         tmp.recalculateStructure();
 
-        List<Neuron> newInputList = new List<Neuron>();
-        List<Neuron> newActionList = new List<Neuron>();
+        List<Neuron> newInputList = new List<Neuron>(tmp.inputNeurons);
+        List<Neuron> newActionList = new List<Neuron>(tmp.actionNeurons);
+        List<Neuron> newHiddenList = new List<Neuron>(tmp.hiddenNeurons);
 
-        bool shift = false;
-        foreach (Neuron oldInput in tmp.ROinputNeurons.Concat(tmp.ROactionNeurons)) {
-            if (oldInput.ID == toRemove.ID) {
-                //if reached the neuron to remove, start shifting
-                shift = true;
-            } else if(shift) {     //if shifting is active
-                Neuron shiftedNeuron = oldInput;
+        Neuron[] all = newInputList.Concat(newActionList).Concat(newHiddenList).ToArray();
+
+        for (int i = 0; i < all.Length; i++) {
+
+            //if neuron needs to be shifted down
+            if (all[i].ID > toRemove.ID) {
+                Neuron shiftedNeuron = all[i];
                 shiftedNeuron.ID -= 1;
 
                 //shift the connections
-                foreach (int source in shiftedNeuron.incommingConnections) {
-                    tmp.GetNeuronRef(source).outgoingConnections.Remove(oldInput.ID);
-                    tmp.GetNeuronRef(source).outgoingConnections.Add(shiftedNeuron.ID);
+                foreach (int sourceID in shiftedNeuron.incommingConnections) {
+                    int sourceIndex = Array.FindIndex(all, o => o.ID == sourceID);
+                    all[sourceIndex].outgoingConnections.Remove(all[i].ID);
+                    all[sourceIndex].outgoingConnections.Add(shiftedNeuron.ID);
                 }
-                foreach (int target in shiftedNeuron.outgoingConnections) {
-                    tmp.GetNeuronRef(target).incommingConnections.Remove(oldInput.ID);
-                    tmp.GetNeuronRef(target).incommingConnections.Add(shiftedNeuron.ID);
+                foreach (int targetID in shiftedNeuron.outgoingConnections) {
+                    int targetIndex = Array.FindIndex(all, o => o.ID == targetID);
+                    all[targetIndex].incommingConnections.Remove(all[i].ID);
+                    all[targetIndex].incommingConnections.Add(shiftedNeuron.ID);
                 }
-                for (int i = 0; i < tmp.connectionList.Length; i++) {
-                    Connection con = tmp.connectionList[i];
-                    if (con.sourceID == oldInput.ID) {
-                        tmp.connectionList[i] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == oldInput.ID) {
-                        tmp.connectionList[i] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
+                for (int connectionIndex = 0; connectionIndex < tmp.connectionList.Length; connectionIndex++) {
+                    Connection con = tmp.connectionList[connectionIndex];
+                    if (con.sourceID == all[i].ID) {
+                        tmp.connectionList[connectionIndex] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
+                    } else if (con.targetID == all[i].ID) {
+                        tmp.connectionList[connectionIndex] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
                     }
                 }
-                for (int i = 0; i < tmp.recurrentConnectionList.Length; i++) {
-                    Connection con = tmp.recurrentConnectionList[i];
-                    if (con.sourceID == oldInput.ID) {
-                        tmp.recurrentConnectionList[i] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == oldInput.ID) {
-                        tmp.recurrentConnectionList[i] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
+                for (int rConnectionIndex = 0; rConnectionIndex < tmp.recurrentConnectionList.Length; rConnectionIndex++) {
+                    Connection con = tmp.recurrentConnectionList[rConnectionIndex];
+                    if (con.sourceID == all[i].ID) {
+                        tmp.recurrentConnectionList[rConnectionIndex] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
+                    } else if (con.targetID == all[i].ID) {
+                        tmp.recurrentConnectionList[rConnectionIndex] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
                     }
                 }
 
-                if (shiftedNeuron.type == NeuronType.Input) {
-                    newInputList.Add(shiftedNeuron);
-                } else {
-                    newActionList.Add(shiftedNeuron);
-                }
-                
-            } else {    //if neuron must not be shifted, transfer neuron
-                if (oldInput.type == NeuronType.Input) {
-                    newInputList.Add(oldInput);
-                } else {
-                    newActionList.Add(oldInput);
-                }
+                //replace old with shifted neuron
+                all[i] = shiftedNeuron;
             }
         }
 
-        NEAT newNEAT = new NEAT(newInputList.ToArray(), newActionList.ToArray());
-        newNEAT.hiddenNeurons = tmp.hiddenNeurons;
-        newNEAT.connectionList = tmp.connectionList;
-        newNEAT.recurrentConnectionList = tmp.recurrentConnectionList;
-        newNEAT.IDCounter = tmp.IDCounter;
+        //sort neuron collection
+        newInputList = all.Where(o => o.type == NeuronType.Input).ToList();
+        newActionList = all.Where(o => o.type == NeuronType.Action).ToList();
+        newHiddenList = all.Where(o => o.type == NeuronType.Hidden).ToList();
+
+        if (toRemove.type == NeuronType.Input) newInputList.Remove(toRemove);
+        if (toRemove.type == NeuronType.Action) newActionList.Remove(toRemove);
+
+        NEAT newNEAT = new NEAT(newInputList.OrderBy(o => o.ID).ToArray(), newActionList.OrderBy(o => o.ID).ToArray()) {
+            hiddenNeurons = newHiddenList.ToArray(),
+            connectionList = tmp.connectionList,
+            recurrentConnectionList = tmp.recurrentConnectionList,
+            IDCounter = tmp.IDCounter - 1
+        };
         return newNEAT;
     }
 
@@ -182,75 +184,67 @@ public static class UtilityClass {
 
         NEAT tmp = new NEAT(oldNEAT);
 
-        List<Neuron> newInputList = new List<Neuron>();
-        List<Neuron> newActionList = new List<Neuron>();
-        
+        List<Neuron> newInputList = new List<Neuron>(oldNEAT.inputNeurons);
+        List<Neuron> newActionList = new List<Neuron>(oldNEAT.actionNeurons);
+        List<Neuron> newHiddenList = new List<Neuron>(oldNEAT.hiddenNeurons);
+
+        Neuron[] all = newInputList.Concat(newActionList).Concat(newHiddenList).ToArray();
+
         //also shift hidden neurons to avoid possible conflicts between last action neuron and first hidden neuron (index wise)
-        foreach (Neuron oldInput in tmp.ROinputNeurons.Concat(tmp.ROactionNeurons).Concat(tmp.hiddenNeurons).Reverse()) {
+        for (int j = all.Length - 1 ; j >= 0; j--) {
+
             //shift all neurons at ID or above
-            if (oldInput.ID >= toAdd.ID) {
-                Neuron shiftedNeuron = oldInput;
+            if (all[j].ID >= toAdd.ID) {
+                Neuron shiftedNeuron = all[j];
                 shiftedNeuron.ID += 1;
 
                 //shift the connections
-                foreach (int source in shiftedNeuron.incommingConnections) {
-                    tmp.GetNeuronRef(source).outgoingConnections.Remove(oldInput.ID);
-                    tmp.GetNeuronRef(source).outgoingConnections.Add(shiftedNeuron.ID);
+                foreach (int sourceID in shiftedNeuron.incommingConnections) {
+                    int sourceIndex = Array.FindIndex(all, o => o.ID == sourceID);
+                    all[sourceIndex].outgoingConnections.Remove(all[j].ID);
+                    all[sourceIndex].outgoingConnections.Add(shiftedNeuron.ID);
                 }
-                foreach (int target in shiftedNeuron.outgoingConnections) {
-                    tmp.GetNeuronRef(target).incommingConnections.Remove(oldInput.ID);
-                    tmp.GetNeuronRef(target).incommingConnections.Add(shiftedNeuron.ID);
+                foreach (int targetID in shiftedNeuron.outgoingConnections) {
+                    int targetIndex = Array.FindIndex(all, o => o.ID == targetID);
+                    all[targetIndex].incommingConnections.Remove(all[j].ID);
+                    all[targetIndex].incommingConnections.Add(shiftedNeuron.ID);
                 }
                 for (int i = 0; i < tmp.connectionList.Length; i++) {
                     Connection con = tmp.connectionList[i];
-                    if (con.sourceID == oldInput.ID) {
+                    if (con.sourceID == all[j].ID) {
                         tmp.connectionList[i] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == oldInput.ID) {
+                    } else if (con.targetID == all[j].ID) {
                         tmp.connectionList[i] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
                     }
                 }
                 for (int i = 0; i < tmp.recurrentConnectionList.Length; i++) {
                     Connection con = tmp.recurrentConnectionList[i];
-                    if (con.sourceID == oldInput.ID) {
+                    if (con.sourceID == all[j].ID) {
                         tmp.recurrentConnectionList[i] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == oldInput.ID) {
+                    } else if (con.targetID == all[j].ID) {
                         tmp.recurrentConnectionList[i] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
                     }
                 }
 
-                //add shifted neuron to list
-                if (shiftedNeuron.type == NeuronType.Input) {
-                    newInputList.Add(shiftedNeuron);
-                } else {
-                    newActionList.Add(shiftedNeuron);
-                }
-
-                //if new neuron ID is at this position, also add
-                if (oldInput.ID == toAdd.ID) {
-                    if (shiftedNeuron.type == NeuronType.Input) {
-                        newInputList.Add(toAdd);
-                    } else {
-                        newActionList.Add(toAdd);
-                    }
-                }
-
-            } else {    //if neuron must not be shifted, transfer neuron
-                if (oldInput.type == NeuronType.Input) {
-                    newInputList.Add(oldInput);
-                } else {
-                    newActionList.Add(oldInput);
-                }
+                //replace old with shifted neuron
+                all[j] = shiftedNeuron;
             }
         }
 
-        newInputList.Reverse();
-        newActionList.Reverse();
+        //sort neuron collection
+        newInputList = all.Where(o => o.type == NeuronType.Input).ToList();
+        newActionList = all.Where(o => o.type == NeuronType.Action).ToList();
+        newHiddenList = all.Where(o => o.type == NeuronType.Hidden).ToList();
 
-        NEAT newNEAT = new NEAT(newInputList.ToArray(), newActionList.ToArray());
-        newNEAT.hiddenNeurons = tmp.hiddenNeurons;
-        newNEAT.connectionList = tmp.connectionList;
-        newNEAT.recurrentConnectionList = tmp.recurrentConnectionList;
-        newNEAT.IDCounter = tmp.IDCounter+1;
+        if(toAdd.type == NeuronType.Input) newInputList.Add(toAdd);
+        if(toAdd.type == NeuronType.Action) newActionList.Add(toAdd);
+
+        NEAT newNEAT = new NEAT(newInputList.OrderBy(o => o.ID).ToArray(), newActionList.OrderBy(o => o.ID).ToArray()) {
+            hiddenNeurons = newHiddenList.ToArray(),
+            connectionList = tmp.connectionList,
+            recurrentConnectionList = tmp.recurrentConnectionList,
+            IDCounter = tmp.IDCounter+1
+        };
         return newNEAT;
     }
 }
