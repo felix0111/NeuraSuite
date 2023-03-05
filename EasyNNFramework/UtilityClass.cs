@@ -7,6 +7,11 @@ using System.Threading;
 using EasyNNFramework.NEAT;
 
 public static class UtilityClass {
+
+    public static NEAT Crossover(in NEAT brain1, in NEAT brain2) {
+        throw new NotImplementedException();
+    }
+
     public static T DeepClone<T>(this T obj) {
         using (var ms = new MemoryStream()) {
             var formatter = new BinaryFormatter();
@@ -51,12 +56,17 @@ public static class UtilityClass {
         Neuron[] cpy = new Neuron[obj.Length];
         Neuron buffer;
         for (int i = 0; i < obj.Length; i++) {
-            buffer = obj[i];
-            buffer.incommingConnections = new List<int>(buffer.incommingConnections);
-            buffer.outgoingConnections = new List<int>(buffer.outgoingConnections);
-            cpy[i] = buffer;
+            cpy[i] = obj[i].Clone();
         }
 
+        return cpy;
+    }
+
+    public static Connection[] CopyConnectionArray(this Connection[] obj) {
+        Connection[] cpy = new Connection[obj.Length];
+        for (int i = 0; i < obj.Length; i++) {
+            cpy[i] = obj[i];
+        }
         return cpy;
     }
 
@@ -82,12 +92,12 @@ public static class UtilityClass {
 
         return max;
     }
-
+    /*
     public static NEAT RemoveStaticNeurons(in NEAT oldNEAT, Neuron[] removedNeurons) {
         NEAT tmp = new NEAT(oldNEAT);
 
         foreach (Neuron n in removedNeurons) {
-            if (n.type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + n.ID + " is not a static neuron!");
+            if (n.Type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + n.ID + " is not a static neuron!");
 
             tmp = RemoveStaticNeuron(tmp, n);
         }
@@ -96,17 +106,20 @@ public static class UtilityClass {
     }
 
     public static NEAT RemoveStaticNeuron(in NEAT oldNEAT, Neuron toRemove) {
-        if (toRemove.type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + toRemove.ID + " is not a static neuron!");
+        if (toRemove.Type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + toRemove.ID + " is not a static neuron!");
 
         NEAT tmp = new NEAT(oldNEAT);
 
         //remove all connections depending on neuron and free up it's ID
-        tmp.RemoveDependingConnections(toRemove.ID);
-        tmp.recalculateStructure();
+        tmp.RemoveDependingConnections(toRemove.ID, true);
+        tmp.RecalculateStructure();
 
-        List<Neuron> newInputList = new List<Neuron>(tmp.inputNeurons);
-        List<Neuron> newActionList = new List<Neuron>(tmp.actionNeurons);
-        List<Neuron> newHiddenList = new List<Neuron>(tmp.hiddenNeurons);
+        List<Neuron> newInputList = new List<Neuron>(tmp.InputNeurons);
+        List<Neuron> newActionList = new List<Neuron>(tmp.ActionNeurons);
+        List<Neuron> newHiddenList = new List<Neuron>(tmp.HiddenNeurons);
+
+        newInputList.RemoveAll(o => o.ID == toRemove.ID);
+        newActionList.RemoveAll(o => o.ID == toRemove.ID);
 
         Neuron[] all = newInputList.Concat(newActionList).Concat(newHiddenList).ToArray();
 
@@ -115,48 +128,48 @@ public static class UtilityClass {
             //if neuron needs to be shifted down
             if (all[i].ID > toRemove.ID) {
                 Neuron shiftedNeuron = all[i];
-                shiftedNeuron.ID -= 1;
+                shiftedNeuron.SetID(shiftedNeuron.ID-1);
 
                 //shift the connections
-                foreach (int sourceID in shiftedNeuron.incommingConnections) {
+                foreach (int sourceID in shiftedNeuron.IncommingConnections) {
                     int sourceIndex = Array.FindIndex(all, o => o.ID == sourceID);
-                    all[sourceIndex].outgoingConnections.Remove(all[i].ID);
-                    all[sourceIndex].outgoingConnections.Add(shiftedNeuron.ID);
+                    all[sourceIndex].OutgoingConnections.Remove(all[i].ID);
+                    all[sourceIndex].OutgoingConnections.Add(shiftedNeuron.ID);
                 }
-                foreach (int targetID in shiftedNeuron.outgoingConnections) {
+                foreach (int targetID in shiftedNeuron.OutgoingConnections) {
                     int targetIndex = Array.FindIndex(all, o => o.ID == targetID);
-                    all[targetIndex].incommingConnections.Remove(all[i].ID);
-                    all[targetIndex].incommingConnections.Add(shiftedNeuron.ID);
+                    all[targetIndex].IncommingConnections.Remove(all[i].ID);
+                    all[targetIndex].IncommingConnections.Add(shiftedNeuron.ID);
                 }
-                for (int connectionIndex = 0; connectionIndex < tmp.connectionList.Length; connectionIndex++) {
-                    Connection con = tmp.connectionList[connectionIndex];
-                    if (con.sourceID == all[i].ID) {
-                        tmp.connectionList[connectionIndex] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == all[i].ID) {
-                        tmp.connectionList[connectionIndex] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
+                for (int connectionIndex = 0; connectionIndex < tmp.Connections.Count; connectionIndex++) {
+                    Connection con = tmp.Connections.ElementAt(connectionIndex).Value;
+                    if (con.SourceID == all[i].ID) {
+                        tmp.Connections.Remove(con.ID);
+                        tmp.Connections.Add(con.ID, new Connection(con.ID, shiftedNeuron.ID, con.TargetID, con.Weight));
+                    } else if (con.TargetID == all[i].ID) {
+                        tmp.connectionList[connectionIndex] = new Connection(con.SourceID, shiftedNeuron.ID, con.Weight);
                     }
                 }
                 for (int rConnectionIndex = 0; rConnectionIndex < tmp.recurrentConnectionList.Length; rConnectionIndex++) {
                     Connection con = tmp.recurrentConnectionList[rConnectionIndex];
-                    if (con.sourceID == all[i].ID) {
-                        tmp.recurrentConnectionList[rConnectionIndex] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == all[i].ID) {
-                        tmp.recurrentConnectionList[rConnectionIndex] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
+                    if (con.SourceID == all[i].ID) {
+                        tmp.recurrentConnectionList[rConnectionIndex] = new Connection(shiftedNeuron.ID, con.TargetID, con.Weight);
+                    } else if (con.TargetID == all[i].ID) {
+                        tmp.recurrentConnectionList[rConnectionIndex] = new Connection(con.SourceID, shiftedNeuron.ID, con.Weight);
                     }
                 }
 
                 //replace old with shifted neuron
                 all[i] = shiftedNeuron;
+            } else if (all[i].ID == toRemove.ID) {
+
             }
         }
 
         //sort neuron collection
-        newInputList = all.Where(o => o.type == NeuronType.Input).ToList();
-        newActionList = all.Where(o => o.type == NeuronType.Action).ToList();
-        newHiddenList = all.Where(o => o.type == NeuronType.Hidden).ToList();
-
-        if (toRemove.type == NeuronType.Input) newInputList.Remove(toRemove);
-        if (toRemove.type == NeuronType.Action) newActionList.Remove(toRemove);
+        newInputList = all.Where(o => o.Type == NeuronType.Input).ToList();
+        newActionList = all.Where(o => o.Type == NeuronType.Action).ToList();
+        newHiddenList = all.Where(o => o.Type == NeuronType.Hidden).ToList();
 
         NEAT newNEAT = new NEAT(newInputList.OrderBy(o => o.ID).ToArray(), newActionList.OrderBy(o => o.ID).ToArray()) {
             hiddenNeurons = newHiddenList.ToArray(),
@@ -171,7 +184,7 @@ public static class UtilityClass {
         NEAT tmp = new NEAT(oldNEAT);
 
         foreach (Neuron n in addedNeurons) {
-            if (n.type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + n.ID + " is not a static neuron!");
+            if (n.Type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + n.ID + " is not a static neuron!");
 
             tmp = AddStaticNeuron(tmp, n);
         }
@@ -180,7 +193,7 @@ public static class UtilityClass {
     }
 
     public static NEAT AddStaticNeuron(in NEAT oldNEAT, Neuron toAdd) {
-        if (toAdd.type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + toAdd.ID + " is not a static neuron!");
+        if (toAdd.Type == NeuronType.Hidden) throw new Exception("Hidden neuron with ID " + toAdd.ID + " is not a static neuron!");
 
         NEAT tmp = new NEAT(oldNEAT);
 
@@ -199,30 +212,30 @@ public static class UtilityClass {
                 shiftedNeuron.ID += 1;
 
                 //shift the connections
-                foreach (int sourceID in shiftedNeuron.incommingConnections) {
+                foreach (int sourceID in shiftedNeuron.IncommingConnections) {
                     int sourceIndex = Array.FindIndex(all, o => o.ID == sourceID);
-                    all[sourceIndex].outgoingConnections.Remove(all[j].ID);
-                    all[sourceIndex].outgoingConnections.Add(shiftedNeuron.ID);
+                    all[sourceIndex].OutgoingConnections.Remove(all[j].ID);
+                    all[sourceIndex].OutgoingConnections.Add(shiftedNeuron.ID);
                 }
-                foreach (int targetID in shiftedNeuron.outgoingConnections) {
+                foreach (int targetID in shiftedNeuron.OutgoingConnections) {
                     int targetIndex = Array.FindIndex(all, o => o.ID == targetID);
-                    all[targetIndex].incommingConnections.Remove(all[j].ID);
-                    all[targetIndex].incommingConnections.Add(shiftedNeuron.ID);
+                    all[targetIndex].IncommingConnections.Remove(all[j].ID);
+                    all[targetIndex].IncommingConnections.Add(shiftedNeuron.ID);
                 }
                 for (int i = 0; i < tmp.connectionList.Length; i++) {
                     Connection con = tmp.connectionList[i];
-                    if (con.sourceID == all[j].ID) {
-                        tmp.connectionList[i] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == all[j].ID) {
-                        tmp.connectionList[i] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
+                    if (con.SourceID == all[j].ID) {
+                        tmp.connectionList[i] = new Connection(shiftedNeuron.ID, con.TargetID, con.Weight);
+                    } else if (con.TargetID == all[j].ID) {
+                        tmp.connectionList[i] = new Connection(con.SourceID, shiftedNeuron.ID, con.Weight);
                     }
                 }
                 for (int i = 0; i < tmp.recurrentConnectionList.Length; i++) {
                     Connection con = tmp.recurrentConnectionList[i];
-                    if (con.sourceID == all[j].ID) {
-                        tmp.recurrentConnectionList[i] = new Connection(shiftedNeuron.ID, con.targetID, con.weight);
-                    } else if (con.targetID == all[j].ID) {
-                        tmp.recurrentConnectionList[i] = new Connection(con.sourceID, shiftedNeuron.ID, con.weight);
+                    if (con.SourceID == all[j].ID) {
+                        tmp.recurrentConnectionList[i] = new Connection(shiftedNeuron.ID, con.TargetID, con.Weight);
+                    } else if (con.TargetID == all[j].ID) {
+                        tmp.recurrentConnectionList[i] = new Connection(con.SourceID, shiftedNeuron.ID, con.Weight);
                     }
                 }
 
@@ -232,12 +245,12 @@ public static class UtilityClass {
         }
 
         //sort neuron collection
-        newInputList = all.Where(o => o.type == NeuronType.Input).ToList();
-        newActionList = all.Where(o => o.type == NeuronType.Action).ToList();
-        newHiddenList = all.Where(o => o.type == NeuronType.Hidden).ToList();
+        newInputList = all.Where(o => o.Type == NeuronType.Input).ToList();
+        newActionList = all.Where(o => o.Type == NeuronType.Action).ToList();
+        newHiddenList = all.Where(o => o.Type == NeuronType.Hidden).ToList();
 
-        if(toAdd.type == NeuronType.Input) newInputList.Add(toAdd);
-        if(toAdd.type == NeuronType.Action) newActionList.Add(toAdd);
+        if(toAdd.Type == NeuronType.Input) newInputList.Add(toAdd);
+        if(toAdd.Type == NeuronType.Action) newActionList.Add(toAdd);
 
         NEAT newNEAT = new NEAT(newInputList.OrderBy(o => o.ID).ToArray(), newActionList.OrderBy(o => o.ID).ToArray()) {
             hiddenNeurons = newHiddenList.ToArray(),
@@ -246,5 +259,5 @@ public static class UtilityClass {
             IDCounter = tmp.IDCounter+1
         };
         return newNEAT;
-    }
+    }*/
 }

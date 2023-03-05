@@ -71,9 +71,9 @@ namespace EasyNNFramework.NEAT {
                 }
 
                 if (generations % 50 == 0) {
-                    Console.WriteLine("Connection count: " + networks.Last().Key.connectionList.Length);
-                    Console.WriteLine("Recurrent Connection count: " + networks.Last().Key.recurrentConnectionList.Length);
-                    Console.WriteLine("Neuron count: " + networks.Last().Key.hiddenNeurons.Length);
+                    Console.WriteLine("Connection count: " + networks.Last().Key.Connections.Count);
+                    Console.WriteLine("Recurrent Connection count: " + networks.Last().Key.RecurrentConnections.Count);
+                    Console.WriteLine("Neuron count: " + networks.Last().Key.HiddenNeurons.Length);
                     Console.WriteLine("Average fitness: " + (networks.Skip(189).Sum(x => x.Value) / 9f) );
                 }
 

@@ -4,57 +4,79 @@ using System.Collections.Generic;
 namespace EasyNNFramework.NEAT {
 
     [Serializable]
-    public struct Neuron : IEquatable<Neuron> {
-        public float value, lastValue;
-        public ActivationFunction function;
-        public readonly NeuronType type;
-        public List<int> incommingConnections, outgoingConnections;
-        public int ID;
+    public class Neuron : IEquatable<Neuron> {
+        private float _sum;
+        public float Value { get; private set; }
+        public float LastValue { get; private set; }
 
-        public Neuron(int ID, ActivationFunction _function, NeuronType _type) {
-            this.ID = ID;
-            function = _function;
-            type = _type;
-            value = 0f;
-            lastValue = 0f;
-            incommingConnections = new List<int>();
-            outgoingConnections = new List<int>();
+        public ActivationFunction Function;
+        public readonly NeuronType Type;
+        public List<int> IncommingConnections, OutgoingConnections;
+
+        public int ID { get; private set; }
+        public bool Activated { get; private set; }
+
+        public Neuron(int id, ActivationFunction function, NeuronType type) {
+            ID = id;
+            Function = function;
+            Type = type;
+            IncommingConnections = new List<int>();
+            OutgoingConnections = new List<int>();
+
+            //defaults
+            _sum = 0f;
+            Value = 0f;
+            LastValue = 0f;
+            Activated = false;
         }
 
         private const float l = 1.0507009873554804934193349852946f;
         private const float a = 1.6732632423543772848170429916717f;
-        public void processValue() {
-            float sum = value;
+        public void Activate() {
 
-            switch (function) {
+            switch (Function) {
                 case ActivationFunction.GELU:
-                    value = 0.5f * sum * (1 + (float)Math.Tanh(Math.Sqrt(2f / Math.PI) * (sum + 0.044715f * Math.Pow(sum, 3))));
+                    Value = 0.5f * _sum * (1 + (float)Math.Tanh(Math.Sqrt(2f / Math.PI) * (_sum + 0.044715f * Math.Pow(_sum, 3))));
                     break;
                 case ActivationFunction.TANH:
-                    value = (float)Math.Tanh(sum);
+                    Value = (float)Math.Tanh(_sum);
                     break;
                 case ActivationFunction.SIGMOID:
-                    value = 1.0f / (1.0f + (float)Math.Exp(-sum));
+                    Value = 1.0f / (1.0f + (float)Math.Exp(-_sum));
                     break;
                 case ActivationFunction.SWISH:
-                    value = sum / (1.0f + (float)Math.Exp(-sum));
+                    Value = _sum / (1.0f + (float)Math.Exp(-_sum));
                     break;
                 case ActivationFunction.RELU:
-                    value = Math.Max(0, sum);
+                    Value = Math.Max(0, _sum);
                     break;
                 case ActivationFunction.SELU:
-                    value = sum > 0 ? l * sum : l * a * ((float)Math.Exp(sum) - 1f);
+                    Value = _sum > 0 ? l * _sum : l * a * ((float)Math.Exp(_sum) - 1f);
                     break;
                 case ActivationFunction.IDENTITY:
-                    value = sum;
+                    Value = _sum;
                     break;
                 default:
-                    value = sum;
+                    Value = _sum;
                     break;
             }
+
+            Activated = true;
         }
 
-        public override bool Equals(object obj) => obj is Neuron n && Equals(n);
+        public void Input(float value) {
+            _sum += value;
+        }
+
+        public void ResetState() {
+            Activated = false;
+            _sum = 0f;
+
+            LastValue = Value;
+            Value = 0f;
+        }
+
+        public override bool Equals(object obj) => Equals(obj as Neuron);
 
         public static bool operator ==(Neuron lf, Neuron ri) => lf.Equals(ri);
 
@@ -62,10 +84,18 @@ namespace EasyNNFramework.NEAT {
 
         public override int GetHashCode() => ID.GetHashCode();
 
-        public bool Equals(Neuron obj) => obj.ID == ID;
+        public bool Equals(Neuron obj) => obj != null && obj.ID == ID;
+
+        //even though this is a struct, the two lists are ref type and need to be newly created
+        public Neuron Clone() {
+            Neuron clone = new Neuron(ID, Function, Type);
+            clone.IncommingConnections = new List<int>(IncommingConnections);
+            clone.OutgoingConnections = new List<int>(OutgoingConnections);
+            return clone;
+        }
     }
 
-    public enum NeuronType {Input, Hidden, Action}
+    public enum NeuronType {Input, Hidden, Action, Bias}
     public enum ActivationFunction { GELU = 0, TANH = 1, SIGMOID = 2, SWISH = 3, RELU = 4, SELU = 5, IDENTITY = 6 }
 
 }
