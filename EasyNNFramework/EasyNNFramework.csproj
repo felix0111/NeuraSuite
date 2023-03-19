@@ -85,9 +85,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugProgram.cs" />
+    <Compile Include="NEAT\Connection.cs" />
+    <Compile Include="NEAT\LayerStructure.cs" />
+    <Compile Include="NEAT\Mutator.cs" />
+    <Compile Include="NEAT\NEATUtility.cs" />
+    <Compile Include="NEAT\Network.cs" />
     <Compile Include="NEAT\Neuron.cs" />
-    <Compile Include="NEAT\NEAT.cs" />
-    <Compile Include="UtilityClass.cs" />
+    <Compile Include="NEAT\Neat.cs" />
+    <Compile Include="NEAT\Species.cs" />
+    <Compile Include="NNUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
