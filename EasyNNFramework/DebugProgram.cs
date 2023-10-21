@@ -9,14 +9,20 @@ namespace EasyNNFramework.NEAT {
     public static class DebugProgram {
 
         private const int networkCount = 200;
-        private const float mutationChance = 0.25f;
-        private const int maxGens = 100000;
+        private const float mutationChance = 0.5f;
+        private const int mutationCount = 5;
+        private const int maxGens = 10000;
 
         static void Main(string[] args) {
-
+            
+            restart:
             GetTemplates(out List<Neuron> insN, out List<Neuron> outsN);
             Neat neat = new Neat(insN.ToArray(), outsN.ToArray(), new SpeciationOptions(1, 0.05f, 0.70f, 10, false, false, 15));
-            neat.AddNetwork(networkCount);
+            for (int i = 0; i < networkCount; i++) neat.AddNetwork(i);
+            neat.SpeciateAll();
+            neat.NetworkCollection[1].Fitness = 1f;
+
+            MutateOptions mo = new MutateOptions(0.12f, 0.00f, 0.04f, 0.80f, 0.01f, 0.01f, 0.02f, 0f, ActivationFunction.TANH);
 
             //training
             float generations = 1f;
@@ -28,10 +34,35 @@ namespace EasyNNFramework.NEAT {
 
                 //repopulate
                 w.Start();
-                neat.Repopulate(networkCount, false, mutationChance, 4, new MutateOptions(0.05f, 0.0f, 0.05f, 0.80f, 0.05f, 0.05f, 0f, 0f, ActivationFunction.TANH));
+
+                //evaluate new species
+                var newPop = neat.SpeciesPopulation(networkCount, 1);
+                Dictionary<int, Network> bestOfSpecie = new Dictionary<int, Network>(newPop.Count);
+                foreach (var specie in newPop) {
+                    bestOfSpecie.Add(specie.Item1, neat.Species[specie.Item1].AllNetworks.Values.OrderByDescending(o => o.Fitness).First());
+                }
+
+                //remove old
+                neat.RemoveAllNetworks();
+
+                //create new species
+                foreach (var specie in newPop) {
+                    for (int i = 0; i < specie.Item2; i++) {
+                        int netID = neat.AddNetwork(neat.NetworkCollection.Count).NetworkID;
+                        neat.ChangeNetwork(netID, bestOfSpecie[specie.Item1]);
+
+                        //mutate randomly
+                        if (neat.Random.NextDouble() <= mutationChance) {
+                            int rndCount = neat.Random.Next(1, mutationCount + 1);
+                            for (int j = 0; j < rndCount; j++) neat.NetworkCollection[netID].Mutate(neat, mo);
+                        }
+                    }
+                }
+                
+                neat.RemoveEmptySpecies();
 
                 w.Stop();
-                Console.WriteLine("Repopulating time: " + w.ElapsedMilliseconds);
+                //Console.WriteLine("Repopulating time: " + w.ElapsedMilliseconds);
                 w.Reset();
 
                 //calculate
@@ -39,13 +70,14 @@ namespace EasyNNFramework.NEAT {
                 RunAndFitnessXOR(neat);
 
                 w.Stop();
-                Console.WriteLine("Calculating time: " + w.ElapsedMilliseconds);
+                //Console.WriteLine("Calculating time: " + w.ElapsedMilliseconds);
                 w.Reset();
 
+                /*
                 //Debug
                 //every 50 gens
                 if (generations % 10 == 0) {
-                    var pop = neat.SpeciesPopulation(networkCount).ToDictionary(o => o.Item1, o => o.Item2);
+                    var pop = neat.SpeciesPopulation(networkCount, 1).ToDictionary(o => o.Item1, o => o.Item2);
                     Console.WriteLine("Population size: " + neat.NetworkCollection.Count);
                     Console.WriteLine("Generation: " + generations);
                     foreach (var specie in neat.Species) {
@@ -60,12 +92,17 @@ namespace EasyNNFramework.NEAT {
                         Console.WriteLine("Best Fitness: " + best.Fitness);
                         Console.WriteLine("Best Neuron count: " + best.HiddenNeurons.Length);
                     }
-                }
+                }*/
 
                 generations++;
 
             } while (neat.NetworkCollection.OrderByDescending(o => o.Value.Fitness).First().Value.Fitness < 0.98f);
             run.Stop();
+
+            Console.WriteLine("Generations: " + generations + "  Time: " + run.ElapsedMilliseconds / 1000f + "s");
+            run.Reset();
+
+            goto restart;
 
             Console.WriteLine("Species: " + neat.NetworkCollection.OrderByDescending(o => o.Value.Fitness).First().Value.SpeciesID);
             Console.WriteLine(neat.NetworkCollection.OrderByDescending(o => o.Value.Fitness).First().Value.HiddenNeurons.Length);
@@ -78,7 +115,6 @@ namespace EasyNNFramework.NEAT {
 
             foreach (var network in neat.NetworkCollection) {
                 
-                network.Value.ResetFitness();
                 float fitness = 0;
                 fitness += EvaluateXOR(0, 0, 0, network.Value);
                 fitness += EvaluateXOR(0, 0, 1, network.Value);
@@ -88,7 +124,7 @@ namespace EasyNNFramework.NEAT {
                 fitness += EvaluateXOR(1, 0, 1, network.Value);
                 fitness += EvaluateXOR(1, 1, 0, network.Value);
                 fitness += EvaluateXOR(1, 1, 1, network.Value);
-                network.Value.AddFitness(fitness / 8f);
+                network.Value.Fitness = fitness / 8f;
             }
         }
         

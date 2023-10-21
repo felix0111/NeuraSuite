@@ -56,6 +56,9 @@ namespace EasyNNFramework.NEAT {
                 case ActivationFunction.IDENTITY:
                     Value = _sum;
                     break;
+                case ActivationFunction.LATCH:
+                    Value = NNUtility.Latch(LastValue, _sum);
+                    break;
                 default:
                     Value = _sum;
                     break;
@@ -96,6 +99,6 @@ namespace EasyNNFramework.NEAT {
     }
 
     public enum NeuronType {Input, Hidden, Action, Bias}
-    public enum ActivationFunction { GELU = 0, TANH = 1, SIGMOID = 2, SWISH = 3, RELU = 4, SELU = 5, IDENTITY = 6 }
+    public enum ActivationFunction { GELU = 0, TANH = 1, SIGMOID = 2, SWISH = 3, RELU = 4, SELU = 5, IDENTITY = 6, LATCH = 7 }
 
 }

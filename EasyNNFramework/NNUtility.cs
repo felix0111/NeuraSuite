@@ -113,4 +113,14 @@ public static class NNUtility {
 
         return z_exp.Select(i => (float)i / sum_z_exp).ToArray();
     }
+
+    public static float Latch(float initialValue, float inputValue) {
+        if (inputValue >= 1f) {
+            return 1f;
+        } else if (inputValue < 0f) {
+            return 0f;
+        }
+
+        return initialValue;
+    }
 }

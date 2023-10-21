@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Random = System.Random;
 
 namespace EasyNNFramework.NEAT {
     public static class NEATUtility {
 
         public static bool CheckRecurrent(this Network network, int sourceID, int targetID) {
 
-            if (network.GetNeuronType(sourceID) == NeuronType.Action) return true;  //connection starting at action neuron
-            if (network.GetNeuronType(sourceID) == NeuronType.Input || network.GetNeuronType(sourceID) == NeuronType.Bias) return false;  //connection starting at input neuron
-            if (network.GetNeuronType(targetID) == NeuronType.Action) return false; //connection ending at action neuron
+            if (sourceID == targetID) return true;  //connection going to self => recurrent
+
+            if (network.GetNeuronType(sourceID) == NeuronType.Input || network.GetNeuronType(sourceID) == NeuronType.Bias) return false;  //connection starting at input neuron => not recurrent
+            if (network.GetNeuronType(targetID) == NeuronType.Action) return false; //connection ending at action neuron => not recurrent
 
             //check if target neuron exists in incomming connections
             foreach (int connectionID in network.Neurons[sourceID].IncommingConnections) {
@@ -46,8 +46,8 @@ namespace EasyNNFramework.NEAT {
         }
 
         public static bool ExistsConnection(this Network network, int sourceID, int targetID) {
+            
             Connection buffer;
-
             for (int i = 0; i < network.RecurrentConnections.Count; i++) {
                 buffer = network.RecurrentConnections.Values.ElementAt(i);
                 if (buffer.SourceID == sourceID && buffer.TargetID == targetID) return true;
@@ -127,6 +127,9 @@ namespace EasyNNFramework.NEAT {
                 W += Math.Abs(w1 - w2);
             }
 
+            //more disjoints = higher delta
+            //for example: disjointfactor = 1; disjoints = 10; number of weights = 20; delta = 0.5
+            //for example: disjointfactor = 1; disjoints = 5; number of weights = 5; delta = 1
             float delta = (options.DisjointFactor * split.Item2.Length) / N;
             delta += options.WeightFactor * W;
 

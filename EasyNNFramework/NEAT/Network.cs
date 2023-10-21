@@ -27,7 +27,7 @@ namespace EasyNNFramework.NEAT {
 
         public int SpeciesID;
 
-        public float Fitness { get; private set; }
+        public float Fitness;
 
         private int Depth => _ls.layerArray.Count;
 
@@ -80,6 +80,7 @@ namespace EasyNNFramework.NEAT {
             RecalculateNeuronArrays();
             _ls = new LayerStructure(this);
 
+            SpeciesID = templateNetwork.SpeciesID;
             Fitness = templateNetwork.Fitness;
 
             InputValues = new float[InputNeurons.Length];
@@ -205,7 +206,8 @@ namespace EasyNNFramework.NEAT {
                 ActionNeurons[i].ResetState();
                 ActionNeurons[i].ResetState();
             }
-            ResetFitness();
+
+            Fitness = 0f;
         }
 
         public void CalculateNetwork() {
@@ -228,6 +230,11 @@ namespace EasyNNFramework.NEAT {
                 Neurons[con.TargetID].Input(con.Weight * Neurons[con.SourceID].LastValue);
             }
 
+            foreach (var layer in _ls.layerArray) {
+                
+            }
+
+            
             //calculate all neurons layer by layer
             //first sum all values from incomming connections, then activate neuron, goto next layer
             for (int layerIndex = 0; layerIndex < _ls.layerArray.Count; layerIndex++) {
@@ -240,7 +247,7 @@ namespace EasyNNFramework.NEAT {
                         Neuron src = Neurons[con.SourceID];
 
                         //shouldnt happen
-                        if (!src.Activated) throw new Exception("A neuron was not activated in the feed forward process!");
+                        if (!src.Activated) throw new Exception("The neuron " + src.ID + " was not activated in the feed forward process!");
 
                         target.Input(con.Weight * src.Value);
                     }
@@ -256,6 +263,7 @@ namespace EasyNNFramework.NEAT {
         }
 
         //TODO function still work in progress
+        //calculates network
         public void CalculateStep(in float[] inputNeuronValues, ref float[] actionNeuronValues) {
             while (!this.OutputsActivated()) {
                 foreach (var neuron in Neurons) {
@@ -277,20 +285,6 @@ namespace EasyNNFramework.NEAT {
                     }
                 }
             }
-        }
-
-        //adds the inverse lerped value to fitness
-        public void AddFitness(float value, float minValue, float maxValue) {
-            Fitness += NNUtility.InverseLerp(minValue, maxValue, value);
-        }
-
-        //adds value directly to fitness
-        public void AddFitness(float value) {
-            Fitness += value;
-        }
-
-        public void ResetFitness() {
-            Fitness = 0f;
         }
 
     }

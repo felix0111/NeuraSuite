@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Random = System.Random;
 
 namespace EasyNNFramework.NEAT {
 
@@ -31,20 +32,20 @@ namespace EasyNNFramework.NEAT {
             Species = new Dictionary<int, Species>();
         }
 
-        public void AddNetwork(int amount, Network startingNetwork = null, bool migrate = true) {
-            for (int i = 0; i < amount; i++) {
-                Network newNet;
-                if (startingNetwork == null) {
-                    newNet = new Network(NetworkCollection.Count, InputTemplate, ActionTemplate);
-                    NetworkCollection.Add(NetworkCollection.Count, newNet);
-                    
-                } else {
-                    newNet = migrate ? MigrateNetwork(NetworkCollection.Count, startingNetwork) : startingNetwork;
-                    NetworkCollection.Add(NetworkCollection.Count, newNet);
-                }
-                newNet.ResetNetwork();
-            }
-            SpeciateAll();
+        public Network AddNetwork(int ID) {
+            Network newNet = new Network(ID, InputTemplate, ActionTemplate);
+            NetworkCollection.Add(newNet.NetworkID, newNet);
+            
+            return newNet;
+        }
+
+        //change the structure of an existing network and speciates it
+        public void ChangeNetwork(int networkID, Network template) {
+            if (Species.TryGetValue(NetworkCollection[networkID].SpeciesID, out Species specie)) specie.RemoveFromSpecies(NetworkCollection[networkID]);
+
+            NetworkCollection[networkID] = MigrateNetwork(networkID, template);
+
+            SpeciateSingle(NetworkCollection[networkID]);
         }
 
         public void RemoveNetwork(int networkID) {
@@ -56,54 +57,6 @@ namespace EasyNNFramework.NEAT {
             foreach (var key in NetworkCollection.Keys.ToList()) {
                 RemoveNetwork(key);
             }
-        }
-        
-        //after x steps of no fitness improvement => no offspring
-        //resets fitness
-        public void Repopulate(int targetPopulationSize, bool forcePopulationSize, float mutationChance, int mutationAmount, MutateOptions mutateOptions) {
-            
-            //linearely maps the avg fitness of a species to a range from 0 to population size
-            var speciesPop = SpeciesPopulation(targetPopulationSize);
-
-            if (SpeciationOptions.RemoveUnimproved) speciesPop = speciesPop.Where(o => Species[o.Item1].CheckImprovement(SpeciationOptions.UseAdjustedFitness, SpeciationOptions.StepsUntilUnimprovedDelete)).ToList();
-
-            List<Network> newNetworks = new List<Network>();
-            foreach (var speciePop in speciesPop) {
-
-                //linearely maps the network fitness of a species to a range from 0 to the new population size in specie
-                var networkPop = Species[speciePop.Item1].PopulationSize(speciePop.Item2, 5);
-
-                foreach (var netPop in networkPop) {
-                    for (int i = 0; i < netPop.Item2; i++) newNetworks.Add(new Network(newNetworks.Count, Species[speciePop.Item1].AllNetworks[netPop.Item1]));
-                }
-            }
-
-            if (newNetworks.Count == 0) newNetworks = NetworkCollection.Select(o => o.Value).Take(targetPopulationSize).ToList();
-
-            //add/remove random networks until at population size
-            int count = targetPopulationSize - newNetworks.Count;
-            if (!forcePopulationSize) count = 0;
-            if (count > 0) {    //fill until at max population size
-                for (int i = 0; i < count; i++) {
-                    newNetworks.Add(new Network(newNetworks.Count, NetworkCollection.ElementAt(Random.Next(0, NetworkCollection.Count)).Value));
-                }
-            } else if (count < 0) { //remove until max population size
-                for (int i = 0; i < Math.Abs(count); i++) {
-                    newNetworks.RemoveAt(Random.Next(0, newNetworks.Count));
-                }
-            }
-
-            //clear old population
-            RemoveAllNetworks();
-
-            //populate all networks
-            for (int i = 0; i < newNetworks.Count; i++) {
-                if(Random.NextDouble() < mutationChance) for (int j = 0; j < Random.Next(1, mutationAmount+1); j++) newNetworks[i].Mutate(this, mutateOptions);
-                AddNetwork(1, newNetworks[i], false);
-            }
-
-            SpeciateAll();
-            RemoveEmptySpecies();
         }
 
         public void CalculateAll() {
@@ -121,10 +74,10 @@ namespace EasyNNFramework.NEAT {
         public void SpeciateSingle(Network network) {
 
             //check if (still) compatible to old species, this may improve performance because less compatibility checks are needed
-            if (Species.TryGetValue(network.SpeciesID, out Species specie)) {
-                if (specie.CheckCompatibility(network, SpeciationOptions, true)) return;
+            if (Species.TryGetValue(network.SpeciesID, out Species oldSpecie)) {
+                if (oldSpecie.CheckCompatibility(network, SpeciationOptions, true)) return;
 
-                specie.RemoveFromSpecies(network);
+                oldSpecie.RemoveFromSpecies(network);
             }
 
             //find first compatible species and add
@@ -134,8 +87,26 @@ namespace EasyNNFramework.NEAT {
 
             //if no compatible found, create new species
             Species newSpecies = new Species(_speciesCounter++, network);
+
+            //transfer improvement data to new species
+            if (oldSpecie != null) {
+                newSpecies.StepsSinceImprovement = oldSpecie.StepsSinceImprovement;
+                newSpecies.BestAverageFitness = oldSpecie.BestAverageFitness;
+                
+            }
+
             newSpecies.AddToSpecies(network);
             Species.Add(newSpecies.SpeciesID, newSpecies);
+        }
+
+        public void AdjustCompatabilityFactor(int currentSpeciesAmount, float step) {
+            if (SpeciationOptions.MaxSpecies == currentSpeciesAmount) return;
+
+            var oldOptions = SpeciationOptions;
+            float adj = currentSpeciesAmount < SpeciationOptions.MaxSpecies ? -step : step;
+
+            oldOptions.CompatabilityThreshold += adj;
+            SpeciationOptions = oldOptions;
         }
 
         public void RemoveEmptySpecies() {
@@ -144,25 +115,26 @@ namespace EasyNNFramework.NEAT {
             }
         }
 
+        //doesnt work for different input/action neurons
         //reevaluates the correct innovation IDs for a network which may come from a different population
         //this is because the innovation collection and IDs may not be correct
         public Network MigrateNetwork(int newNetworkID, Network template) {
             Network newNetwork = new Network(newNetworkID, template);
 
-            for (int i = 0; i < newNetwork.Connections.Count; i++) {
-                Connection oldConnection = newNetwork.Connections.ElementAt(i).Value;
-                newNetwork.RemoveConnection(oldConnection.InnovationID);
-
-                oldConnection.InnovationID = NewInnovation(oldConnection.SourceID, oldConnection.TargetID);
-                newNetwork.AddConnection(oldConnection.InnovationID, oldConnection.SourceID, oldConnection.TargetID, oldConnection.Weight);
+            List<Connection> newConns = new List<Connection>();
+            foreach (var connection in newNetwork.Connections.Values.ToList()) {
+                newNetwork.RemoveConnection(connection.InnovationID);
+                int newInnov = NewInnovation(connection.SourceID, connection.TargetID);
+                newConns.Add(new Connection(newInnov, connection.SourceID, connection.TargetID, connection.Weight));
+            }
+            foreach (var connection in newNetwork.RecurrentConnections.Values.ToList()) {
+                newNetwork.RemoveConnection(connection.InnovationID);
+                int newInnov = NewInnovation(connection.SourceID, connection.TargetID);
+                newConns.Add(new Connection(newInnov, connection.SourceID, connection.TargetID, connection.Weight));
             }
 
-            for (int i = 0; i < newNetwork.RecurrentConnections.Count; i++) {
-                Connection oldConnection = newNetwork.RecurrentConnections.ElementAt(i).Value;
-                newNetwork.RemoveConnection(oldConnection.InnovationID);
-
-                oldConnection.InnovationID = NewInnovation(oldConnection.SourceID, oldConnection.TargetID);
-                newNetwork.AddConnection(oldConnection.InnovationID, oldConnection.SourceID, oldConnection.TargetID, oldConnection.Weight);
+            foreach (var connection in newConns) {
+                newNetwork.AddConnection(connection.InnovationID, connection.SourceID, connection.TargetID, connection.Weight);
             }
 
             return newNetwork;
@@ -181,16 +153,19 @@ namespace EasyNNFramework.NEAT {
         //returns list of (specieID , newPopSize)
         //when all species fitness is zero, returns empty list
         //limits species amount by the corresponding speciation option, maximum species amount is 1/4 of target population amount
-        public List<(int, int)> SpeciesPopulation(int targetAmount) {
+        //spreadfactor defines how much more population a better species gets; 1 = linear spread over all species
+        public List<(int, int)> SpeciesPopulation(int targetNetworkAmount, int spreadFactor) {
 
             List<(int, float)> newArr = Species.Select(o => (o.Key, o.Value.AverageFitness(SpeciationOptions.UseAdjustedFitness))).OrderByDescending(o => o.Item2).ToList();
 
-            newArr = newArr.Take(Math.Min(targetAmount/4, SpeciationOptions.MaxSpecies)).ToList();
-            
-            float sum = newArr.Sum(o => o.Item2);
-            if (sum == 0) return new List<(int, int)>();
+            if(SpeciationOptions.RemoveUnimproved) newArr = newArr.Where(o => Species[o.Item1].ImprovedSince(SpeciationOptions.UseAdjustedFitness, SpeciationOptions.StepsUntilUnimprovedDelete)).ToList();
 
-            return newArr.Select(o=> (o.Item1, (int)Math.Ceiling((o.Item2/sum) * targetAmount))).ToList();
+            newArr = newArr.Take(Math.Min(targetNetworkAmount / 4, SpeciationOptions.MaxSpecies)).ToList();
+
+            //if not softmax, spread linearly
+            float sum = newArr.Sum(o => (float)Math.Pow(o.Item2, spreadFactor));
+            if (sum == 0) return new List<(int, int)>();
+            return newArr.Select(o=> (o.Item1, (int)Math.Ceiling((Math.Pow(o.Item2, spreadFactor)/sum) * targetNetworkAmount))).ToList();
         }
 
     }

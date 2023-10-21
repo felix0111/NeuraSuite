@@ -15,10 +15,12 @@ namespace EasyNNFramework.NEAT {
             layerArray = new List<int[]>();
             neuronLayerDict = new Dictionary<int, int>(network.Neurons.Count); //key = neuron id, value = layer
 
-            //calc layer for input and hidden neurons
+            //add input neurons
             foreach (var input in network.InputNeurons) {
                 neuronLayerDict.Add(input.ID, 1);
             }
+
+            //calculate hidden neuron layers by back propagating connections
             foreach (Neuron n in network.HiddenNeurons) {
                 GetLayer(n.ID, network);
             }
@@ -31,11 +33,12 @@ namespace EasyNNFramework.NEAT {
 
             //add layers
             for (int i = 1; i <= neuronLayerDict.Values.Max(); i++) {
-                var allNeuronsInLayerI = neuronLayerDict.Where(o => o.Value == i).Select(o => o.Key).ToArray();
-                layerArray.Add(allNeuronsInLayerI);
+                var allNeuronsInLayer = neuronLayerDict.Where(o => o.Value == i).Select(o => o.Key).ToArray();
+                layerArray.Add(allNeuronsInLayer);
             }
         }
 
+        //automatically adds to internal neuron layer dict
         public int GetLayer(int neuronID, in Network network) {
             if (neuronLayerDict.TryGetValue(neuronID, out int v)) return v;
 
@@ -46,7 +49,7 @@ namespace EasyNNFramework.NEAT {
                 if (l > highestLayer) highestLayer = l;
             }
 
-            neuronLayerDict.Add(neuronID, highestLayer + 1);
+            if(!neuronLayerDict.ContainsKey(neuronID)) neuronLayerDict.Add(neuronID, highestLayer + 1);
             return highestLayer + 1;
         }
     }

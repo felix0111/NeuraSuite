@@ -17,19 +17,19 @@ namespace EasyNNFramework.NEAT {
 
         public Dictionary<int, Network> AllNetworks;
 
-        private float _bestAverageFitness = -1f;
-        public int StepsSinceImprovement { get; private set; }
+        public float BestAverageFitness = -1f;
+        public int StepsSinceImprovement;
 
         public Species(int speciesId, Network representative) {
             Representative = new Network(-1, representative);
 
             SpeciesID = speciesId;
-
+            
             AllNetworks = new Dictionary<int, Network>();
         }
 
         public bool CheckCompatibility(Network network, SpeciationOptions options, bool addToSpecies) {
-            bool comp = NEATUtility.Distance(Representative, network, options) < options.CompatabilityThreshold;
+            bool comp = NEATUtility.Distance(Representative, network, options) <= options.CompatabilityThreshold;
 
             if (addToSpecies && comp) AddToSpecies(network);
             return comp;
@@ -58,33 +58,24 @@ namespace EasyNNFramework.NEAT {
             val = val / AllNetworks.Count;
 
             if (float.IsNaN(val)) val = 0;
-            
+
             return val;
         }
 
-        public bool CheckImprovement(bool useAdjFitness) {
-            float newAvgFitness = AverageFitness(useAdjFitness);
-            if (_bestAverageFitness >= newAvgFitness) { //no improvement
-                StepsSinceImprovement++;
-                return false;
-            } else {
-                _bestAverageFitness = newAvgFitness;
-                StepsSinceImprovement = 0;  //improvement
-                return true;
-            }
-        }
-
-        public bool CheckImprovement(bool useAdjFitness, int steps) {
-            float newAvgFitness = AverageFitness(useAdjFitness);
-            if (_bestAverageFitness >= newAvgFitness) { //no improvement
+        //checks if species has improved at least once since x generations
+        public bool ImprovedSince(bool useAdjFitness, int gens) {
+            float fitn = AverageFitness(useAdjFitness);
+            if (BestAverageFitness >= fitn) { //no improvement
                 StepsSinceImprovement++;
             } else {
-                _bestAverageFitness = newAvgFitness;
                 StepsSinceImprovement = 0;  //improvement
+                BestAverageFitness = fitn;
             }
 
-            return StepsSinceImprovement <= steps;
+            return StepsSinceImprovement <= gens;
         }
+
+        
 
         //returns empty when every fitness is 0
         //values lie between 0 and 1 and add up to 1
