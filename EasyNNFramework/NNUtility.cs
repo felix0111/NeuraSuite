@@ -123,4 +123,8 @@ public static class NNUtility {
 
         return initialValue;
     }
+
+    public static float Gauss(float value) {
+        return (float)Math.Pow(Math.E, -(value*value));
+    }
 }
