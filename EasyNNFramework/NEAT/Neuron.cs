@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EasyNNFramework.NEAT {
 
@@ -13,6 +14,8 @@ namespace EasyNNFramework.NEAT {
         public readonly NeuronType Type;
         public List<int> IncommingConnections, OutgoingConnections;
 
+        public List<float> _inputs;
+
         public int ID { get; private set; }
         public bool Activated { get; private set; }
 
@@ -22,6 +25,7 @@ namespace EasyNNFramework.NEAT {
             Type = type;
             IncommingConnections = new List<int>();
             OutgoingConnections = new List<int>();
+            _inputs = new List<float>();
 
             //defaults
             _sum = 0f;
@@ -33,6 +37,13 @@ namespace EasyNNFramework.NEAT {
         private const float l = 1.0507009873554804934193349852946f;
         private const float a = 1.6732632423543772848170429916717f;
         public void Activate() {
+
+            if (Function == ActivationFunction.MULT) {
+                _sum = _inputs[0];
+                for (int i = 1; i < _inputs.Count; i++) _sum *= _inputs[i];
+            } else {
+                _sum = _inputs.Sum();
+            }
 
             switch (Function) {
                 case ActivationFunction.GELU:
@@ -77,15 +88,12 @@ namespace EasyNNFramework.NEAT {
         }
 
         public void Input(float value) {
-            if (Function == ActivationFunction.MULT) {
-                _sum *= value;
-                return;
-            }
-
-            _sum += value;
+            _inputs.Add(value);
         }
 
         public void ResetState() {
+            _inputs.Clear();
+
             Activated = false;
             _sum = 0f;
 
