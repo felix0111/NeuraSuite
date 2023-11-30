@@ -230,11 +230,6 @@ namespace EasyNNFramework.NEAT {
                 Neurons[con.TargetID].Input(con.Weight * Neurons[con.SourceID].LastValue);
             }
 
-            foreach (var layer in _ls.layerArray) {
-                
-            }
-
-            
             //calculate all neurons layer by layer
             //first sum all values from incomming connections, then activate neuron, goto next layer
             for (int layerIndex = 0; layerIndex < _ls.layerArray.Count; layerIndex++) {
