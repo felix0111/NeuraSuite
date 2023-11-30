@@ -22,7 +22,7 @@ namespace EasyNNFramework.NEAT {
             neat.SpeciateAll();
             neat.NetworkCollection[1].Fitness = 1f;
 
-            MutateOptions mo = new MutateOptions(0.12f, 0.00f, 0.04f, 0.80f, 0.01f, 0.01f, 0.02f, 0f, ActivationFunction.TANH);
+            MutateOptions mo = new MutateOptions(0.12f, 0.00f, 0.04f, 0.80f, 0.01f, 0.01f, 0.02f, 0f, ActivationFunction.TANH, true);
 
             //training
             float generations = 1f;

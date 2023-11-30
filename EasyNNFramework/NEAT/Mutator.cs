@@ -40,7 +40,8 @@ namespace EasyNNFramework.NEAT {
             } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection + options.AddNeuron) {
                 if (network.Connections.Count == 0) return false;
                 Connection con = network.RandomConnectionType(neat.Random, false);
-                network.AddNeuron(neat, con.InnovationID, options.HiddenActivationFunction);
+                Neuron n = network.AddNeuron(neat, con.InnovationID, options.HiddenActivationFunction);
+                if (options.RandomActivationFunction) n.Function = NNUtility.RandomActivationFunction(neat.Random);
             } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron) {
                 if (network.HiddenNeurons.Length == 0) return false;
                 network.RemoveNeuron(network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID);
@@ -85,8 +86,9 @@ namespace EasyNNFramework.NEAT {
         public float AddConnection, RandomizeWeight, RemoveConnection, AdjustWeight, AddRecurrentConnection;
         public float AddNeuron, RemoveNeuron, RandomFunction;
         public ActivationFunction HiddenActivationFunction;
+        public bool RandomActivationFunction;
 
-        public MutateOptions(float addConnection, float randomizeWeight, float removeConnection, float adjustWeight, float addNeuron, float removeNeuron, float randomFunction, float addRecurrentConnection, ActivationFunction hiddenActivationFunction) {
+        public MutateOptions(float addConnection, float randomizeWeight, float removeConnection, float adjustWeight, float addNeuron, float removeNeuron, float randomFunction, float addRecurrentConnection, ActivationFunction hiddenActivationFunction, bool randomActivationFunction) {
             AddConnection = addConnection;
             RandomizeWeight = randomizeWeight;
             RemoveConnection = removeConnection;
@@ -96,6 +98,7 @@ namespace EasyNNFramework.NEAT {
             RandomFunction = randomFunction;
             AddRecurrentConnection = addRecurrentConnection;
             HiddenActivationFunction = hiddenActivationFunction;
+            RandomActivationFunction = randomActivationFunction;
         }
 
     }
