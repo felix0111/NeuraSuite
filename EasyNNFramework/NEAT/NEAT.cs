@@ -153,19 +153,18 @@ namespace EasyNNFramework.NEAT {
         //returns list of (specieID , newPopSize)
         //when all species fitness is zero, returns empty list
         //limits species amount by the corresponding speciation option, maximum species amount is 1/4 of target population amount
-        //spreadfactor defines how much more population a better species gets; 1 = linear spread over all species
+        //when spread factor is 1, species network distribution is linear to species fitness
+        //else the distribution is calculated with softmax
         public List<(int, int)> SpeciesPopulation(int targetNetworkAmount, int spreadFactor) {
 
-            List<(int, float)> newArr = Species.Select(o => (o.Key, o.Value.AverageFitness(SpeciationOptions.UseAdjustedFitness))).OrderByDescending(o => o.Item2).ToList();
+            List<(int, float)> speciesFitnessPair = Species.Select(o => (o.Key, o.Value.AverageFitness(SpeciationOptions.UseAdjustedFitness))).OrderByDescending(o => o.Item2).ToList();
 
-            if(SpeciationOptions.RemoveUnimproved) newArr = newArr.Where(o => Species[o.Item1].ImprovedSince(SpeciationOptions.UseAdjustedFitness, SpeciationOptions.StepsUntilUnimprovedDelete)).ToList();
+            speciesFitnessPair = speciesFitnessPair.Take(Math.Min(targetNetworkAmount / 4, SpeciationOptions.MaxSpecies)).ToList();
 
-            newArr = newArr.Take(Math.Min(targetNetworkAmount / 4, SpeciationOptions.MaxSpecies)).ToList();
-
-            //if not softmax, spread linearly
-            float sum = newArr.Sum(o => (float)Math.Pow(o.Item2, spreadFactor));
+            //calculate new network amount for each species
+            float sum = speciesFitnessPair.Sum(o => (float)Math.Pow(o.Item2, spreadFactor));
             if (sum == 0) return new List<(int, int)>();
-            return newArr.Select(o=> (o.Item1, (int)Math.Ceiling((Math.Pow(o.Item2, spreadFactor)/sum) * targetNetworkAmount))).ToList();
+            return speciesFitnessPair.Select(o=> (o.Item1, (int)Math.Ceiling((Math.Pow(o.Item2, spreadFactor)/sum) * targetNetworkAmount))).ToList();
         }
 
     }

@@ -101,20 +101,18 @@ namespace EasyNNFramework.NEAT {
 
         public int MaxSpecies;
 
-        public bool RemoveUnimproved;
         public int StepsUntilUnimprovedDelete;
 
         public bool UseAdjustedFitness;
 
         //compatability threshold - higher number means more differences allowed
         //maxSpecies - the more species are allowed, the more lower performing specie can evolve.
-        public SpeciationOptions(float disjointFactor, float weightFactor, float compatabilityThreshold, int maxSpecies, bool useAdjustedFitness, bool removeUnimproved, int stepsUntilUnimprovedDelete) {
+        public SpeciationOptions(float disjointFactor, float weightFactor, float compatabilityThreshold, int maxSpecies, bool useAdjustedFitness, int stepsUntilUnimprovedDelete) {
             DisjointFactor = disjointFactor;
             WeightFactor = weightFactor;
             CompatabilityThreshold = compatabilityThreshold;
             MaxSpecies = maxSpecies;
             UseAdjustedFitness = useAdjustedFitness;
-            RemoveUnimproved = removeUnimproved;
             StepsUntilUnimprovedDelete = stepsUntilUnimprovedDelete;
         }
     }
