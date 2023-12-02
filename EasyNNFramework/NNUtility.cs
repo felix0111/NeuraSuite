@@ -117,7 +117,9 @@ public static class NNUtility {
     public static float Latch(float initialValue, float inputValue) {
         if (inputValue >= 1f) {
             return 1f;
-        } else if (inputValue < 0f) {
+        }
+        
+        if (inputValue < 0f) {
             return 0f;
         }
 
