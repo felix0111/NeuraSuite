@@ -11,8 +11,8 @@ namespace EasyNNFramework.NEAT {
         private static readonly int MutationCount = 5;
         private static readonly int MaxGenerations = 10000;
 
-        private static readonly MutateOptions MOptions = new MutateOptions(0.12f, 0.00f, 0.04f, 0.80f, 0.01f, 0.01f, 0.02f, 0f, ActivationFunction.TANH, true);
-        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0.05f, 0.70f, 10, false, 15);
+        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.00f, 0.06f, 0.75f, 0.01f, 0.01f, 0.07f, 0f, ActivationFunction.TANH, true);
+        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0.05f, 0.70f, 10, false);
 
         static void Main(string[] args) {
             
@@ -35,6 +35,7 @@ namespace EasyNNFramework.NEAT {
             //using stopwatch to see performance of algorithm
             Stopwatch run = new Stopwatch();
             run.Start();
+            Console.WriteLine("Starting algorithm to solve for XOR-problem");
 
             int currentGeneration = 1;
             do {
@@ -64,6 +65,7 @@ namespace EasyNNFramework.NEAT {
                     }
                 }
                 
+                neat.SpeciateAll();
                 neat.RemoveEmptySpecies();
 
                 RunAndFitnessXOR(neat);
@@ -89,14 +91,14 @@ namespace EasyNNFramework.NEAT {
                         Console.WriteLine("Best Neuron count: " + best.HiddenNeurons.Length);
                     }
                 }*/
-
+                Console.Write("\rCurrent generation: {0} Species Amount: {1}", currentGeneration, neat.Species.Count);
                 currentGeneration++;
 
             } while (neat.NetworkCollection.OrderByDescending(o => o.Value.Fitness).First().Value.Fitness < 0.98f);
             
             //get performance of algorithm
             run.Stop();
-            Console.WriteLine("Generations: " + currentGeneration + "  Time: " + run.ElapsedMilliseconds / 1000f + "s");
+            Console.WriteLine("\rGenerations: " + currentGeneration + "  Time: " + run.ElapsedMilliseconds / 1000f + "s \n");
             run.Reset();
 
             goto restart;
