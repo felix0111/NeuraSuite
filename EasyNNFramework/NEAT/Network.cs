@@ -170,6 +170,18 @@ namespace EasyNNFramework.NEAT {
             }
         }
 
+        public void ToggleConnection(int connectionID, bool active) {
+            if (RecurrentConnections.TryGetValue(connectionID, out Connection val)) {
+                val.Activated = active;
+                RecurrentConnections[connectionID] = val;
+            } else if (Connections.TryGetValue(connectionID, out Connection val2)) {
+                val2.Activated = active;
+                Connections[connectionID] = val2;
+            } else {
+                throw new Exception("Connection with innovation ID " + connectionID + " was not found!");
+            }
+        }
+
         public void RemoveConnection(int connectionID) {
             if (Connections.TryGetValue(connectionID, out Connection val)) {
                 Connections.Remove(connectionID);

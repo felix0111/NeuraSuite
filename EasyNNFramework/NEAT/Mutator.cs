@@ -31,24 +31,24 @@ namespace EasyNNFramework.NEAT {
                 if (network.CheckRecurrent(rndStart, rndEnd)) (rndStart, rndEnd) = (rndEnd, rndStart);  //if recurrent connection, switch neurons
                 if (network.ExistsConnection(rndStart, rndEnd)) return false;
                 network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, NNUtility.RandomWeight(neat.Random));
-            } else if (rndChance <= options.AddConnection + options.RandomizeWeight) {
+            } else if (rndChance <= options.AddConnection) {
                 if (network.Connections.Count == 0) return false; //if no connection, do nothing
                 network.ChangeWeight(network.RandomConnection(neat.Random).InnovationID, NNUtility.RandomWeight(neat.Random));
-            } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection) {
+            } else if (rndChance <= options.AddConnection + options.RemoveConnection) {
                 if (network.Connections.Count == 0) return false;
                 network.RemoveConnection(network.RandomConnection(neat.Random).InnovationID);
-            } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection + options.AddNeuron) {
+            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron) {
                 if (network.Connections.Count == 0) return false;
                 Connection con = network.RandomConnectionType(neat.Random, false);
                 Neuron n = network.AddNeuron(neat, con.InnovationID, options.HiddenActivationFunction);
                 if (options.RandomActivationFunction) n.Function = NNUtility.RandomActivationFunction(neat.Random);
-            } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron) {
+            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron) {
                 if (network.HiddenNeurons.Length == 0) return false;
                 network.RemoveNeuron(network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID);
-            } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction) {
+            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction) {
                 if (network.HiddenNeurons.Length == 0) return false;
                 network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].Function = NNUtility.RandomActivationFunction(neat.Random);
-            } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection) {
+            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection) {
                 if (network.HiddenNeurons.Length == 0) return false;
 
                 //only allows recurrent connections between hidden neurons
@@ -64,13 +64,17 @@ namespace EasyNNFramework.NEAT {
                     counter++;
                 } while (counter <= 4);
                 if (counter == 5) return false;
-            } else if (rndChance <= options.AddConnection + options.RandomizeWeight + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection + options.AdjustWeight) {
+            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection + options.AdjustWeight) {
                 if (network.Connections.Count == 0) return false;
 
                 //weight is adjusted by value between -1f and +1f
                 float rndSign = NNUtility.RandomSign(neat.Random);
                 Connection rndCon = network.RandomConnection(neat.Random);
                 network.ChangeWeight(rndCon.InnovationID, NNUtility.Clamp(-4f, 4f, rndCon.Weight + rndSign * (float)neat.Random.NextDouble()));
+            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection + options.AdjustWeight + options.ToggleConnection) {
+                if (network.Connections.Count == 0) return false;
+                Connection rndCon = network.RandomConnection(neat.Random);
+                network.ToggleConnection(rndCon.InnovationID, !rndCon.Activated);
             }
 
             network.RecalculateStructure();
@@ -83,16 +87,16 @@ namespace EasyNNFramework.NEAT {
     //must be in percent and add up to 1
     public struct MutateOptions {
 
-        public float AddConnection, RandomizeWeight, RemoveConnection, AdjustWeight, AddRecurrentConnection;
+        public float AddConnection, RemoveConnection, AdjustWeight, AddRecurrentConnection, ToggleConnection;
         public float AddNeuron, RemoveNeuron, RandomFunction;
         public ActivationFunction HiddenActivationFunction;
         public bool RandomActivationFunction;
 
-        public MutateOptions(float addConnection, float randomizeWeight, float removeConnection, float adjustWeight, float addNeuron, float removeNeuron, float randomFunction, float addRecurrentConnection, ActivationFunction hiddenActivationFunction, bool randomActivationFunction) {
+        public MutateOptions(float addConnection, float removeConnection, float adjustWeight, float toggleConnection, float addNeuron, float removeNeuron, float randomFunction, float addRecurrentConnection, ActivationFunction hiddenActivationFunction, bool randomActivationFunction) {
             AddConnection = addConnection;
-            RandomizeWeight = randomizeWeight;
             RemoveConnection = removeConnection;
             AdjustWeight = adjustWeight;
+            ToggleConnection = toggleConnection;
             AddNeuron = addNeuron;
             RemoveNeuron = removeNeuron;
             RandomFunction = randomFunction;

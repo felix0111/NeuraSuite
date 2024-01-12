@@ -11,7 +11,7 @@ namespace EasyNNFramework.NEAT {
         private static readonly int MutationCount = 5;
         private static readonly int MaxGenerations = 10000;
 
-        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.00f, 0.06f, 0.75f, 0.01f, 0.01f, 0.07f, 0f, ActivationFunction.TANH, true);
+        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.06f, 0.75f, 0.0f, 0.01f, 0.01f, 0.07f, 0f, ActivationFunction.TANH, true);
         private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0.05f, 0.70f, 10, false);
 
         static void Main(string[] args) {
