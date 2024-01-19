@@ -98,6 +98,10 @@ public static class NNUtility {
         return (ActivationFunction)rnd.Next(0, Enum.GetValues(typeof(ActivationFunction)).Length);
     }
 
+    public static ActivationFunction RandomActivationFunction(Random rnd, ActivationFunction[] functionPool) {
+        return functionPool.Length == 0 ? default : functionPool[rnd.Next(0, functionPool.Length)];
+    }
+
     public static int RandomSign(Random rnd) {
         return rnd.Next(0, 2) * 2 - 1;
     }
