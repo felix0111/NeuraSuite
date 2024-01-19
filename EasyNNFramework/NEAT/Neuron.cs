@@ -84,6 +84,8 @@ namespace EasyNNFramework.NEAT {
                     break;
             }
 
+            if (float.IsNaN(Value) || float.IsInfinity(Value)) Value = float.MaxValue;
+
             Activated = true;
         }
 
