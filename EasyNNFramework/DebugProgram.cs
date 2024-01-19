@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Hosting;
 
 namespace EasyNNFramework.NEAT {
     public static class DebugProgram {
@@ -11,7 +12,14 @@ namespace EasyNNFramework.NEAT {
         private static readonly int MutationCount = 5;
         private static readonly int MaxGenerations = 10000;
 
-        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.06f, 0.75f, 0.0f, 0.01f, 0.01f, 0.07f, 0f, ActivationFunction.TANH, true);
+        //includes all activation functions as mutation possibility
+        private static readonly ActivationFunction[] ActivationFunctionPool = (ActivationFunction[])Enum.GetValues(typeof(ActivationFunction));
+
+        //DefaultActivationFunction is not specified because we use RandomDefaultActivationFunction
+        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.06f, 0.75f, 0.0f, 0.01f, 0.01f, 0.07f, 0f, default, ActivationFunctionPool, true);
+        
+        //compatabilityThreshold defines how similar 2 networks must be, in order to be the same species
+        //maxSpecies is only used when using the frameworks method for evaluating the next generation
         private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0.05f, 0.70f, 10, false);
 
         static void Main(string[] args) {

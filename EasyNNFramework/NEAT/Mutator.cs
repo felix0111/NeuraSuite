@@ -31,23 +31,20 @@ namespace EasyNNFramework.NEAT {
                 if (network.CheckRecurrent(rndStart, rndEnd)) (rndStart, rndEnd) = (rndEnd, rndStart);  //if recurrent connection, switch neurons
                 if (network.ExistsConnection(rndStart, rndEnd)) return false;
                 network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, NNUtility.RandomWeight(neat.Random));
-            } else if (rndChance <= options.AddConnection) {
-                if (network.Connections.Count == 0) return false; //if no connection, do nothing
-                network.ChangeWeight(network.RandomConnection(neat.Random).InnovationID, NNUtility.RandomWeight(neat.Random));
             } else if (rndChance <= options.AddConnection + options.RemoveConnection) {
                 if (network.Connections.Count == 0) return false;
                 network.RemoveConnection(network.RandomConnection(neat.Random).InnovationID);
             } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron) {
                 if (network.Connections.Count == 0) return false;
                 Connection con = network.RandomConnectionType(neat.Random, false);
-                Neuron n = network.AddNeuron(neat, con.InnovationID, options.HiddenActivationFunction);
-                if (options.RandomActivationFunction) n.Function = NNUtility.RandomActivationFunction(neat.Random);
+                Neuron n = network.AddNeuron(neat, con.InnovationID, options.DefaultActivationFunction);
+                if (options.RandomDefaultActivationFunction) n.Function = NNUtility.RandomActivationFunction(neat.Random, options.HiddenActivationFunctionPool);
             } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron) {
                 if (network.HiddenNeurons.Length == 0) return false;
                 network.RemoveNeuron(network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID);
             } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction) {
                 if (network.HiddenNeurons.Length == 0) return false;
-                network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].Function = NNUtility.RandomActivationFunction(neat.Random);
+                network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].Function = NNUtility.RandomActivationFunction(neat.Random, options.HiddenActivationFunctionPool);
             } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection) {
                 if (network.HiddenNeurons.Length == 0) return false;
 
@@ -89,10 +86,18 @@ namespace EasyNNFramework.NEAT {
 
         public float AddConnection, RemoveConnection, AdjustWeight, AddRecurrentConnection, ToggleConnection;
         public float AddNeuron, RemoveNeuron, RandomFunction;
-        public ActivationFunction HiddenActivationFunction;
-        public bool RandomActivationFunction;
+        
 
-        public MutateOptions(float addConnection, float removeConnection, float adjustWeight, float toggleConnection, float addNeuron, float removeNeuron, float randomFunction, float addRecurrentConnection, ActivationFunction hiddenActivationFunction, bool randomActivationFunction) {
+        //pool is used when mutation creates a new neuron or randomizes a neuron activation function
+        public ActivationFunction[] HiddenActivationFunctionPool;
+
+        //if RandomDefaultActivationFunction is true
+        //a random function from the specified pool is used for new neurons
+        //else DefaultActivationFunction is used
+        public ActivationFunction DefaultActivationFunction;
+        public bool RandomDefaultActivationFunction;
+
+        public MutateOptions(float addConnection, float removeConnection, float adjustWeight, float toggleConnection, float addNeuron, float removeNeuron, float randomFunction, float addRecurrentConnection, ActivationFunction defaultActivationFunction, ActivationFunction[] hiddenActivationFunctionPool, bool randomDefaultActivationFunction) {
             AddConnection = addConnection;
             RemoveConnection = removeConnection;
             AdjustWeight = adjustWeight;
@@ -101,8 +106,10 @@ namespace EasyNNFramework.NEAT {
             RemoveNeuron = removeNeuron;
             RandomFunction = randomFunction;
             AddRecurrentConnection = addRecurrentConnection;
-            HiddenActivationFunction = hiddenActivationFunction;
-            RandomActivationFunction = randomActivationFunction;
+            DefaultActivationFunction = defaultActivationFunction;
+
+            HiddenActivationFunctionPool = hiddenActivationFunctionPool;
+            RandomDefaultActivationFunction = randomDefaultActivationFunction;
         }
 
     }
