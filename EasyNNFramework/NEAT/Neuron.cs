@@ -79,6 +79,9 @@ namespace EasyNNFramework.NEAT {
                 case ActivationFunction.MULT:
                     Value = _sum;
                     break;
+                case ActivationFunction.BINARYSTEP:
+                    Value = _sum < 0f ? 0f : 1f;
+                    break;
                 default:
                     Value = _sum;
                     break;
@@ -123,6 +126,6 @@ namespace EasyNNFramework.NEAT {
     }
 
     public enum NeuronType {Input, Hidden, Action, Bias}
-    public enum ActivationFunction { GELU = 0, TANH = 1, SIGMOID = 2, SWISH = 3, RELU = 4, SELU = 5, IDENTITY = 6, LATCH = 7, ABS = 8, GAUSS = 9, MULT = 10 }
+    public enum ActivationFunction { GELU = 0, TANH = 1, SIGMOID = 2, SWISH = 3, RELU = 4, SELU = 5, IDENTITY = 6, LATCH = 7, ABS = 8, GAUSS = 9, MULT = 10, BINARYSTEP = 11 }
 
 }
