@@ -44,6 +44,7 @@ namespace EasyNNFramework.NEAT {
             if (Species.TryGetValue(NetworkCollection[networkID].SpeciesID, out Species specie)) specie.RemoveFromSpecies(NetworkCollection[networkID]);
 
             NetworkCollection[networkID] = MigrateNetwork(networkID, template);
+            NetworkCollection[networkID].RecalculateStructure();
 
             SpeciateSingle(NetworkCollection[networkID]);
         }
