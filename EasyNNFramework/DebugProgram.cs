@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Hosting;
+using System.Threading;
 
 namespace EasyNNFramework.NEAT {
     public static class DebugProgram {
 
         private static readonly int NetworkCount = 200;
         private static readonly float MutationChance = 0.5f;
-        private static readonly int MutationCount = 5;
-        private static readonly int MaxGenerations = 10000;
+        private static readonly int MutationCount = 8;
+        private static readonly int MaxGenerations = 1000000;
 
         //includes all activation functions as mutation possibility
         private static readonly ActivationFunction[] ActivationFunctionPool = (ActivationFunction[])Enum.GetValues(typeof(ActivationFunction));
 
         //DefaultActivationFunction is not specified because we use RandomDefaultActivationFunction
-        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.06f, 0.75f, 0.0f, 0.01f, 0.01f, 0.07f, 0f, default, ActivationFunctionPool, true);
+        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.07f, 0.65f, 0.05f, 0.03f, 0.03f, 0.05f, 0.02f, default, ActivationFunctionPool, true);
         
         //compatabilityThreshold defines how similar 2 networks must be, in order to be the same species
         //maxSpecies is only used when using the frameworks method for evaluating the next generation
@@ -43,7 +44,6 @@ namespace EasyNNFramework.NEAT {
             //using stopwatch to see performance of algorithm
             Stopwatch run = new Stopwatch();
             run.Start();
-            Console.WriteLine("Starting algorithm to solve for XOR-problem");
 
             int currentGeneration = 1;
             do {
@@ -76,8 +76,8 @@ namespace EasyNNFramework.NEAT {
                 neat.SpeciateAll();
                 neat.RemoveEmptySpecies();
 
-                RunAndFitnessXOR(neat);
-
+                TestFitness(neat);
+                //RunAndFitnessXOR(neat);
 
                 /*
                 //Debug
@@ -102,7 +102,7 @@ namespace EasyNNFramework.NEAT {
                 Console.Write("\rCurrent generation: {0} Species Amount: {1}", currentGeneration, neat.Species.Count);
                 currentGeneration++;
 
-            } while (neat.NetworkCollection.OrderByDescending(o => o.Value.Fitness).First().Value.Fitness < 0.98f);
+            } while (true /*neat.NetworkCollection.Max(o => o.Value.Fitness) < 0.98f*/);
             
             //get performance of algorithm
             run.Stop();
@@ -116,6 +116,24 @@ namespace EasyNNFramework.NEAT {
             Console.WriteLine("Time: " + run.ElapsedMilliseconds / 1000f + "s");
 
             Console.Read();
+        }
+
+        public static float[] ArrayBuffer;
+        public static void TestFitness(Neat neat) {
+            if(ArrayBuffer == null) ArrayBuffer = new float[neat.InputTemplate.Length];
+
+            foreach (var network in neat.NetworkCollection) {
+
+                //fill inputs with random values
+                for (int i = 0; i < ArrayBuffer.Length; i++) {
+                    ArrayBuffer[i] = (float)neat.Random.NextDouble() - (float)neat.Random.NextDouble();
+                }
+
+                network.Value.InputValues = ArrayBuffer;
+                network.Value.CalculateNetwork();
+
+                network.Value.Fitness = network.Value.Neurons.Count;
+            }
         }
 
         public static void RunAndFitnessXOR(Neat neat) {

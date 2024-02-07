@@ -255,7 +255,7 @@ namespace EasyNNFramework.NEAT {
 
                         //shouldnt happen
                         if (!src.Activated) throw new Exception("The neuron " + src.ID + " was not activated in the feed forward process!");
-
+                        
                         target.Input(con.Weight * src.Value);
                     }
 

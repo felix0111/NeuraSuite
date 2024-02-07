@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 
 namespace EasyNNFramework.NEAT {
 
@@ -42,7 +43,7 @@ namespace EasyNNFramework.NEAT {
                 _sum = _inputs[0];
                 for (int i = 1; i < _inputs.Count; i++) _sum *= _inputs[i];
             } else {
-                _sum = _inputs.Sum();
+                for (int i = 0; i < _inputs.Count; i++) _sum += _inputs[i];
             }
 
             switch (Function) {
