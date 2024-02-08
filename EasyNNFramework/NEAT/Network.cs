@@ -111,7 +111,7 @@ namespace EasyNNFramework.NEAT {
         //the neat object is needed for creating the innovation IDs
         public Neuron AddNeuron(Neat neat, int connectionID, ActivationFunction function) {
             if (RecurrentConnections.ContainsKey(connectionID)) throw new Exception("Can't add neuron between recurent connection!");
-            if (!Connections.ContainsKey(connectionID)) throw new Exception("Connection is does not exist!");
+            if (!Connections.ContainsKey(connectionID)) throw new Exception("Connection does not exist!");
 
             Connection con = Connections[connectionID];
             Neuron newNeuron = new Neuron(_neuronIDCounter, function, NeuronType.Hidden);
@@ -123,6 +123,17 @@ namespace EasyNNFramework.NEAT {
             AddConnection(neat.NewInnovation(newNeuron.ID, con.TargetID), newNeuron.ID, con.TargetID, 1f);
 
             _neuronIDCounter++;
+            return newNeuron;
+        }
+
+        public Neuron AddNeuronUnmanaged(Neuron n) {
+            if (Neurons.ContainsKey(n.ID)) return null;
+
+            Neuron newNeuron = n.Clone();
+            Neurons.Add(newNeuron.ID, newNeuron);
+            RecalculateNeuronArrays();
+
+            _neuronIDCounter = Math.Max(_neuronIDCounter, newNeuron.ID+1);
             return newNeuron;
         }
 

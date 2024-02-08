@@ -141,6 +141,49 @@ namespace EasyNNFramework.NEAT {
             return newNetwork;
         }
 
+        public Network CrossoverNetworks(Network network1, Network network2) {
+            Network newNetwork = new Network(-1, InputTemplate, ActionTemplate);
+
+            //add all neurons
+            foreach (var neuron in network1.HiddenNeurons.Concat(network2.HiddenNeurons)) {
+                //if neuron exists in both networks, 50/50
+                if (newNetwork.AddNeuronUnmanaged(neuron.Clone()) == null && Random.NextDouble() <= 0.5d) {
+                    newNetwork.RemoveNeuron(neuron.ID);
+                    newNetwork.AddNeuronUnmanaged(neuron.Clone());
+                }
+            }
+
+            //go through all connections, matching are random, disjoint from fittest
+            var differences = NEATUtility.GetMatchingAndDisjoint(network1, network2);
+            foreach (var matchingInnov in differences.Item1) {
+                Connection c1 = network1.Connections[matchingInnov];
+                Connection c2 = network2.Connections[matchingInnov];
+                newNetwork.AddConnection(matchingInnov, c1.SourceID, c1.TargetID, 0f);
+                if (newNetwork.Connections.ContainsKey(matchingInnov)) {
+                    newNetwork.Connections[matchingInnov] = Random.NextDouble() <= 0.5d ? c1 : c2;
+                } else {
+                    newNetwork.RecurrentConnections[matchingInnov] = Random.NextDouble() <= 0.5d ? c1 : c2;
+                }
+            }
+
+            Network fittest = network1.Fitness > network2.Fitness ? network1 : network2;
+            foreach (var disjointInnov in differences.Item2) {
+                //if disjoint not from fittest, skip
+                if(!fittest.ExistsConnection(disjointInnov)) continue;
+
+                newNetwork.AddConnection(disjointInnov, fittest.GetConnection(disjointInnov).SourceID, fittest.GetConnection(disjointInnov).TargetID, 0f);
+                if (newNetwork.Connections.ContainsKey(disjointInnov)) {
+                    newNetwork.Connections[disjointInnov] = fittest.GetConnection(disjointInnov);
+                } else {
+                    newNetwork.RecurrentConnections[disjointInnov] = fittest.GetConnection(disjointInnov);
+                }
+            }
+
+            newNetwork.RecalculateStructure();
+
+            return newNetwork;
+        }
+
         //if a given connection is not found then a new innovation number is given this connection and stored in the global collection
         public int NewInnovation(int sourceID, int targetID) {
             if (InnovationCollection.TryGetValue((sourceID, targetID), out int ino)) {
