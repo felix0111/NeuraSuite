@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Hosting;
-using System.Threading;
 
 namespace EasyNNFramework.NEAT {
     public static class DebugProgram {
 
         private static readonly int NetworkCount = 200;
         private static readonly float MutationChance = 0.5f;
-        private static readonly int MutationCount = 8;
-        private static readonly int MaxGenerations = 1000000;
+        private static readonly int MutationCount = 4;
+        private static readonly int MaxGenerations = 10000;
 
         //includes all activation functions as mutation possibility
         private static readonly ActivationFunction[] ActivationFunctionPool = (ActivationFunction[])Enum.GetValues(typeof(ActivationFunction));
@@ -19,17 +17,15 @@ namespace EasyNNFramework.NEAT {
         //DefaultActivationFunction is not specified because we use RandomDefaultActivationFunction
         private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.07f, 0.65f, 0.05f, 0.03f, 0.03f, 0.05f, 0.02f, default, ActivationFunctionPool, true);
         
-        //compatabilityThreshold defines how similar 2 networks must be, in order to be the same species
-        //maxSpecies is only used when using the frameworks method for evaluating the next generation
-        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0.05f, 0.70f, 10, false);
+        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 0.6f, 20, false);
 
         static void Main(string[] args) {
             
             //restart point
             restart:
 
-            //get input/output neuron templates
-            GetTemplates(out List<Neuron> insN, out List<Neuron> outsN);
+            //create input/output neuron templates
+            GetXORTemplates(out List<Neuron> insN, out List<Neuron> outsN);
 
             //create NEAT object which handles all neural networks
             Neat neat = new Neat(insN.ToArray(), outsN.ToArray(), SOptions);
@@ -37,8 +33,10 @@ namespace EasyNNFramework.NEAT {
             //populate NEAT
             for (int i = 0; i < NetworkCount; i++) neat.AddNetwork(i);
 
-            //speciate all networks
+            //speciate all networks, this should put all networks in the same species
             neat.SpeciateAll();
+
+            //needed because else neat.CreatePopulation would return an empty list in the first iteration (fitness of every network is 0)
             neat.NetworkCollection[1].Fitness = 1f;
 
             //using stopwatch to see performance of algorithm
@@ -46,97 +44,85 @@ namespace EasyNNFramework.NEAT {
             run.Start();
 
             int currentGeneration = 1;
+            float bestFitness = 0f;
             do {
                 if (currentGeneration >= MaxGenerations) break;
 
-                //evaluate new species
-                var newPop = neat.SpeciesPopulation(NetworkCount, 1);
-                Dictionary<int, Network> bestOfSpecie = new Dictionary<int, Network>(newPop.Count);
+                //create a new population, basically tells how many network each species will get
+                var newPop = neat.CreatePopulation(NetworkCount, 1);
+
+                //TODO might have to check if newPop is not empty
+
+                //take the best network of each species
+                Dictionary<int, Network> bestOfSpecies = new Dictionary<int, Network>(newPop.Count);
                 foreach (var specie in newPop) {
-                    bestOfSpecie.Add(specie.Item1, neat.Species[specie.Item1].AllNetworks.Values.OrderByDescending(o => o.Fitness).First());
+                    bestOfSpecies.Add(specie.Item1, neat.Species[specie.Item1].AllNetworks.Values.OrderByDescending(o => o.Fitness).First());
                 }
 
-                //remove old
+                //remove all old networks
                 neat.RemoveAllNetworks();
 
-                //create new species
-                foreach (var specie in newPop) {
-                    for (int i = 0; i < specie.Item2; i++) {
-                        int networkID = neat.AddNetwork(neat.NetworkCollection.Count).NetworkID;
-                        neat.ChangeNetwork(networkID, bestOfSpecie[specie.Item1]);
+                //create the new population based of newPop, species.Item1 => speciesID; species.Item2 => network amount
+                foreach (var species in newPop) {
+                    for (int i = 0; i < species.Item2; i++) {
+                        var network = neat.AddNetwork(neat.NetworkCollection.Count, bestOfSpecies[species.Item1]);
 
                         //mutate network randomly
                         if (neat.Random.NextDouble() <= MutationChance) {
                             int rndCount = neat.Random.Next(1, MutationCount + 1);
-                            for (int j = 0; j < rndCount; j++) neat.NetworkCollection[networkID].Mutate(neat, MOptions);
+                            for (int j = 0; j < rndCount; j++) neat.NetworkCollection[network.NetworkID].Mutate(neat, MOptions);
                         }
                     }
                 }
+
+
+                //neat.AdjustCompatabilityFactor(0.01f, 60);
                 
+                //speciate every network because mutation might throw a network out of its species
                 neat.SpeciateAll();
                 neat.RemoveEmptySpecies();
 
-                TestFitness(neat);
-                //RunAndFitnessXOR(neat);
 
-                /*
-                //Debug
-                //every 50 gens
-                if (generations % 10 == 0) {
-                    var pop = neat.SpeciesPopulation(NetworkCount, 1).ToDictionary(o => o.Item1, o => o.Item2);
-                    Console.WriteLine("Population size: " + neat.NetworkCollection.Count);
-                    Console.WriteLine("Generation: " + generations);
-                    foreach (var specie in neat.Species) {
-                        if(specie.Value.AllNetworks.Count == 0) continue;
-                        Network best = specie.Value.AllNetworks.Values.OrderByDescending(o => o.Fitness).First();
-                        Console.WriteLine(".......................Specie " + specie.Key + ".....................");
-                        Console.WriteLine("Genome: " + String.Join(".", specie.Value.Representative.Connections.Select(o => o.Key).Concat(specie.Value.Representative.RecurrentConnections.Select(o => o.Key)).OrderBy(o => o)));
-                        Console.WriteLine("Avg. Fitness: " + specie.Value.AverageFitness(false));
-                        Console.WriteLine("Steps since improvement: " + specie.Value.StepsSinceImprovement);
-                        Console.WriteLine("Specie Size: " + specie.Value.AllNetworks.Count);
-                        Console.WriteLine("New Specie Size: " + (pop.ContainsKey(specie.Key) ? pop[specie.Key].ToString() : "none"));
-                        Console.WriteLine("Best Fitness: " + best.Fitness);
-                        Console.WriteLine("Best Neuron count: " + best.HiddenNeurons.Length);
-                    }
-                }*/
-                Console.Write("\rCurrent generation: {0} Species Amount: {1}", currentGeneration, neat.Species.Count);
+                TestXOR(neat);
+
+
+                //show some data
+                bestFitness = neat.NetworkCollection.Values.Max(o => o.Fitness);
+                Console.Write("\rCurrent generation: {0:D3} Species amount: {1:D3} Comp.threshold: {2:F2} Best accuracy: {3:F1}% accuracy", currentGeneration, neat.Species.Count, neat.SpeciationOptions.CompatabilityThreshold, (bestFitness * 100f));
                 currentGeneration++;
 
-            } while (true /*neat.NetworkCollection.Max(o => o.Value.Fitness) < 0.98f*/);
+            } while (bestFitness <= 0.99f);
             
-            //get performance of algorithm
+            //show performance of population, overall performance might be affected by Console.Write(...) in while loop
             run.Stop();
-            Console.WriteLine("\rGenerations: " + currentGeneration + "  Time: " + run.ElapsedMilliseconds / 1000f + "s \n");
+            Console.WriteLine("\nTotal amount of generations: {0} Time elapsed: {1}s", currentGeneration, run.ElapsedMilliseconds / 1000f);
             run.Reset();
 
+            Console.WriteLine("Enter 'exit' to close.");
+            if (Console.ReadLine() == "exit") return;
             goto restart;
-
-            Console.WriteLine("Species: " + neat.NetworkCollection.OrderByDescending(o => o.Value.Fitness).First().Value.SpeciesID);
-            Console.WriteLine(neat.NetworkCollection.OrderByDescending(o => o.Value.Fitness).First().Value.HiddenNeurons.Length);
-            Console.WriteLine("Time: " + run.ElapsedMilliseconds / 1000f + "s");
-
-            Console.Read();
         }
 
-        public static float[] ArrayBuffer;
-        public static void TestFitness(Neat neat) {
-            if(ArrayBuffer == null) ArrayBuffer = new float[neat.InputTemplate.Length];
-
+        /// <summary>
+        /// Rewards networks with many neurons. Just for testing/debugging performance because it does not really make much sense for anything other.
+        /// </summary>
+        public static void PerformanceTest(Neat neat) {
             foreach (var network in neat.NetworkCollection) {
 
                 //fill inputs with random values
-                for (int i = 0; i < ArrayBuffer.Length; i++) {
-                    ArrayBuffer[i] = (float)neat.Random.NextDouble() - (float)neat.Random.NextDouble();
+                for (int i = 0; i < network.Value.InputValues.Length; i++) {
+                    network.Value.InputValues[i] = (float)neat.Random.NextDouble() - (float)neat.Random.NextDouble();
                 }
 
-                network.Value.InputValues = ArrayBuffer;
                 network.Value.CalculateNetwork();
-
                 network.Value.Fitness = network.Value.Neurons.Count;
             }
         }
 
-        public static void RunAndFitnessXOR(Neat neat) {
+        /// <summary>
+        /// Tests how good each neural network solves a 3 input XOR logic gate. Very simple neural network test.
+        /// </summary>
+        public static void TestXOR(Neat neat) {
 
             foreach (var network in neat.NetworkCollection) {
                 
@@ -153,19 +139,29 @@ namespace EasyNNFramework.NEAT {
             }
         }
         
+        /// <summary>
+        /// Returns the difference between the expected XOR result and the network result, a value between 0 and 1
+        /// </summary>
         public static float EvaluateXOR(int in1, int in2, int in3, Network network) {
 
-            //set inputs
+            //set inputs, 4th input is bias
             network.InputValues = new [] { in1, in2, in3, 1f };
 
             network.CalculateNetwork();
 
             //expected value
             int expectedOutput = LogicXOR(LogicXOR(in1, in2), in3);
-            
+
+            //debug
+            if (1f - Math.Abs(network.OutputValues[0] - expectedOutput) < 0f || 1f - Math.Abs(network.OutputValues[0] - expectedOutput) > 1f) throw new Exception("");
+
+            //difference between expected value and network output
             return 1f - Math.Abs(network.OutputValues[0] - expectedOutput);
         }
 
+        /// <summary>
+        /// Get the logic XOR result.
+        /// </summary>
         public static int LogicXOR(int in1, int in2) {
             if (in1 != in2) {
                 return 1;
@@ -174,7 +170,10 @@ namespace EasyNNFramework.NEAT {
             return 0;
         }
 
-        public static void GetTemplates(out List<Neuron> input, out List<Neuron> output) {
+        /// <summary>
+        /// Creates input and output neuron templates matching the XOR test.
+        /// </summary>
+        public static void GetXORTemplates(out List<Neuron> input, out List<Neuron> output) {
             Neuron in1 = new Neuron( 0, ActivationFunction.IDENTITY, NeuronType.Input);
             Neuron in2 = new Neuron(1, ActivationFunction.IDENTITY, NeuronType.Input);
             Neuron in3 = new Neuron(2, ActivationFunction.IDENTITY, NeuronType.Input);
