@@ -39,31 +39,33 @@ namespace EasyNNFramework.NEAT {
         private const float a = 1.6732632423543772848170429916717f;
         public void Activate() {
 
-            if (Function == ActivationFunction.MULT) {
-                _sum = _inputs[0];
-                for (int i = 1; i < _inputs.Count; i++) _sum *= _inputs[i];
-            } else {
-                for (int i = 0; i < _inputs.Count; i++) _sum += _inputs[i];
-            }
+            //sum up all inputs
+            for (int i = 0; i < _inputs.Count; i++) _sum += _inputs[i];
 
+            //execute activation function on sum (except for MULT)
             switch (Function) {
                 case ActivationFunction.GELU:
                     Value = 0.5f * _sum * (1 + (float)Math.Tanh(Math.Sqrt(2f / Math.PI) * (_sum + 0.044715f * Math.Pow(_sum, 3))));
+                    Value = Math.Max(-0.17f, Value);
                     break;
                 case ActivationFunction.TANH:
                     Value = (float)Math.Tanh(_sum);
+                    Value = Math.Min(1f, Math.Max(-1f, Value));
                     break;
                 case ActivationFunction.SIGMOID:
                     Value = 1.0f / (1.0f + (float)Math.Exp(-_sum));
+                    Value = Math.Min(1f, Math.Max(0f, Value));
                     break;
                 case ActivationFunction.SWISH:
                     Value = _sum / (1.0f + (float)Math.Exp(-_sum));
+                    Value = Math.Max(-0.278f, Value);
                     break;
                 case ActivationFunction.RELU:
-                    Value = Math.Max(0, _sum);
+                    Value = Math.Max(0f, _sum);
                     break;
                 case ActivationFunction.SELU:
-                    Value = _sum > 0 ? l * _sum : l * a * ((float)Math.Exp(_sum) - 1f);
+                    Value = _sum > 0f ? l * _sum : l * a * ((float)Math.Exp(_sum) - 1f);
+                    Value = Math.Max(-1.758f, Value);
                     break;
                 case ActivationFunction.IDENTITY:
                     Value = _sum;
@@ -73,12 +75,20 @@ namespace EasyNNFramework.NEAT {
                     break;
                 case ActivationFunction.ABS:
                     Value = Math.Abs(_sum);
+                    Value = Math.Max(0f, Value);
                     break;
                 case ActivationFunction.GAUSS:
                     Value = NNUtility.Gauss(_sum);
+                    Value = Math.Min(1f, Math.Max(0f, Value));
                     break;
                 case ActivationFunction.MULT:
-                    Value = _sum;
+                    if (_inputs.Count == 0) {
+                        Value = 0f;
+                        break;
+                    }
+
+                    Value = _inputs[0];
+                    for (int i = 1; i < _inputs.Count; i++) Value *= _inputs[i];
                     break;
                 case ActivationFunction.BINARYSTEP:
                     Value = _sum < 0f ? 0f : 1f;
@@ -88,7 +98,13 @@ namespace EasyNNFramework.NEAT {
                     break;
             }
 
-            if (float.IsNaN(Value) || float.IsInfinity(Value)) Value = float.MaxValue;
+            if (float.IsNaN(Value)) {
+                Value = 0f;
+            } else if (float.IsPositiveInfinity(Value)) {
+                Value = float.MaxValue;
+            } else if (float.IsNegativeInfinity(Value)) {
+                Value = float.MinValue;
+            }
 
             Activated = true;
         }
