@@ -74,7 +74,7 @@ namespace EasyNNFramework.NEAT {
                 network.ToggleConnection(rndCon.InnovationID, !rndCon.Activated);
             }
 
-            network.RecalculateStructure();
+            network.RecalculateStructure(!network.AllowUselessHidden);
             return true;
         }
 
@@ -87,8 +87,12 @@ namespace EasyNNFramework.NEAT {
         public float AddConnection, RemoveConnection, AdjustWeight, AddRecurrentConnection, ToggleConnection;
         public float AddNeuron, RemoveNeuron, RandomFunction;
         
-
-        //pool is used when mutation creates a new neuron or randomizes a neuron activation function
+        /// <summary>
+        /// Everytime a mutation creates a new neuron, the activation function is randomly selected from this pool.
+        /// <br/>
+        /// A random activation function is only selected when <see cref="RandomDefaultActivationFunction"/> is true!
+        /// Else <see cref="DefaultActivationFunction"/> is used.
+        /// </summary>
         public ActivationFunction[] HiddenActivationFunctionPool;
 
         //if RandomDefaultActivationFunction is true
