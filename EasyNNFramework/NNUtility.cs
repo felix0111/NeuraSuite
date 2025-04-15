@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
 using EasyNNFramework.NEAT;
+
+namespace EasyNNFramework; 
 
 public static class NNUtility {
 
     public static T DeepClone<T>(this T obj) {
         using (var ms = new MemoryStream()) {
-            var formatter = new BinaryFormatter();
+            var formatter = new XmlSerializer(typeof(T));
             formatter.Serialize(ms, obj);
             ms.Position = 0;
 
