@@ -8,49 +8,72 @@ namespace EasyNNFramework.NEAT {
 
     [Serializable]
     public struct LayerStructure {
-        public List<int[]> layerArray;
+        public List<int>[] layerArray;
         private Dictionary<int, int> neuronLayerDict;
 
+        private int _highestLayer;
+
         public LayerStructure(in Network network) {
-            layerArray = new List<int[]>();
+            layerArray = Array.Empty<List<int>>();
             neuronLayerDict = new Dictionary<int, int>(network.Neurons.Count); //key = neuron id, value = layer
+            _highestLayer = -1;
+
+            // TODO directly add neurons to layerArray without using neuronLayerDict as a buffer, maybe adding layer variable in neuron class?
 
             //add input neurons
+            _highestLayer = 1;
             foreach (var input in network.InputNeurons) {
                 neuronLayerDict.Add(input.ID, 1);
             }
 
             //calculate hidden neuron layers by back propagating connections
             foreach (Neuron n in network.HiddenNeurons) {
-                GetLayer(n.ID, network);
+                GetLayer(n.ID, network);    //automatically adds neurons to neuronLayerDict
             }
 
-            int maxLayer = neuronLayerDict.Values.Max() + 1;
-            //action neurons must be manually set because some may be unconnected
+            //action neurons must be manually added because they are not seen in the back propagation process
+            _highestLayer++;
             foreach (var neuron in network.ActionNeurons) {
-                neuronLayerDict.Add(neuron.ID, maxLayer);
+                neuronLayerDict.Add(neuron.ID, _highestLayer);
             }
 
-            //add layers
-            for (int i = 1; i <= neuronLayerDict.Values.Max(); i++) {
-                var allNeuronsInLayer = neuronLayerDict.Where(o => o.Value == i).Select(o => o.Key).ToArray();
-                layerArray.Add(allNeuronsInLayer);
+            //init layer array
+            //make sure to call this after GetLayer because that's where _highestLayer is defined
+            layerArray = new List<int>[_highestLayer];
+            for (int i = 0; i < _highestLayer; i++) layerArray[i] = new List<int>();
+
+            //populate layer array
+            //input neurons
+            for (int i = 0; i < network.InputNeurons.Length; i++) {
+                layerArray[0].Add(network.InputNeurons[i].ID);
+            }
+            //hidden neurons
+            for (int i = 0; i < network.HiddenNeurons.Length; i++) {
+                int layerIndex = neuronLayerDict[network.HiddenNeurons[i].ID] - 1;
+                layerArray[layerIndex].Add(network.HiddenNeurons[i].ID);
+            }
+            //action neurons
+            for (int i = 0; i < network.ActionNeurons.Length; i++) {
+                layerArray[_highestLayer - 1].Add(network.ActionNeurons[i].ID);
             }
         }
 
         //automatically adds to internal neuron layer dict
+        // TODO rewrite function to also handle input neurons which might allow for more performant ways of creating the layer structure
         public int GetLayer(int neuronID, in Network network) {
             if (neuronLayerDict.TryGetValue(neuronID, out int v)) return v;
 
-            int highestLayer = 1;
+            int highestSourceNeuronLayer = 1;
             for (int i = 0; i < network.Neurons[neuronID].IncommingConnections.Count; i++) {
                 Connection con = network.Connections[network.Neurons[neuronID].IncommingConnections[i]];
                 int l = GetLayer(con.SourceID, network);
-                if (l > highestLayer) highestLayer = l;
+                if (l > highestSourceNeuronLayer) highestSourceNeuronLayer = l;
             }
 
-            if(!neuronLayerDict.ContainsKey(neuronID)) neuronLayerDict.Add(neuronID, highestLayer + 1);
-            return highestLayer + 1;
+            if(!neuronLayerDict.ContainsKey(neuronID)) neuronLayerDict.Add(neuronID, highestSourceNeuronLayer + 1);
+
+            if (highestSourceNeuronLayer + 1 > _highestLayer) _highestLayer = highestSourceNeuronLayer + 1;
+            return highestSourceNeuronLayer + 1;
         }
     }
 }
