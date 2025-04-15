@@ -43,7 +43,7 @@ namespace EasyNNFramework.NEAT {
         public int SpeciesID;
         public float Fitness;
 
-        private int Depth => _ls.LayerArray.Length;
+        private int Depth => _ls.LayerArray.Count;
 
         /// <summary>
         /// Used for calculating the network. This determines the order in which the neurons get activated in the feed forward process.
@@ -386,7 +386,7 @@ namespace EasyNNFramework.NEAT {
 
             //calculate all neurons layer by layer
             //first sum all values from incomming connections, then activate neuron, goto next layer
-            for (int layerIndex = 0; layerIndex < _ls.LayerArray.Length; layerIndex++) {
+            for (int layerIndex = 0; layerIndex < _ls.LayerArray.Count; layerIndex++) {
                 //for each neuron id in layer
                 for (int i = 0; i < _ls.LayerArray[layerIndex].Count; i++) {
                     Neuron target = Neurons[_ls.LayerArray[layerIndex][i]];

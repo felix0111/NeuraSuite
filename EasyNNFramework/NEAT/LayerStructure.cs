@@ -8,53 +8,33 @@ namespace EasyNNFramework.NEAT {
 
     [Serializable]
     public struct LayerStructure {
-        public List<int>[] LayerArray;
+        public List<List<int>> LayerArray;
         private Dictionary<int, int> _neuronLayerDict;
 
-        private int _highestLayer;
-
         public LayerStructure(in Network network) {
-            LayerArray = Array.Empty<List<int>>();
+            LayerArray = new List<List<int>>();
             _neuronLayerDict = new Dictionary<int, int>(network.Neurons.Count); //key = neuron id, value = layer
-            _highestLayer = -1;
-
-            // TODO directly add neurons to layerArray without using neuronLayerDict as a buffer, maybe adding layer variable in neuron class?
 
             //add input neurons
-            _highestLayer = 1;
+            LayerArray.Add(new List<int>(network.InputNeurons.Length));
             foreach (var input in network.InputNeurons) {
                 _neuronLayerDict.Add(input.ID, 1);
+                LayerArray[0].Add(input.ID);
             }
 
             //calculate hidden neuron layers by back propagating connections
             foreach (Neuron n in network.HiddenNeurons) {
-                GetLayer(n.ID, network);    //automatically adds neurons to neuronLayerDict
+                int l = GetLayer(n.ID, network);    //automatically adds neurons to neuronLayerDict
+
+                while (LayerArray.Count < l) LayerArray.Add(new List<int>());
+                LayerArray[l-1].Add(n.ID);
             }
 
             //action neurons must be manually added because they are not seen in the back propagation process
-            _highestLayer++;
+            LayerArray.Add(new List<int>(network.ActionNeurons.Length));
             foreach (var neuron in network.ActionNeurons) {
-                _neuronLayerDict.Add(neuron.ID, _highestLayer);
-            }
-
-            //init layer array
-            //make sure to call this after GetLayer because that's where _highestLayer is defined
-            LayerArray = new List<int>[_highestLayer];
-            for (int i = 0; i < _highestLayer; i++) LayerArray[i] = new List<int>();
-
-            //populate layer array
-            //input neurons
-            for (int i = 0; i < network.InputNeurons.Length; i++) {
-                LayerArray[0].Add(network.InputNeurons[i].ID);
-            }
-            //hidden neurons
-            for (int i = 0; i < network.HiddenNeurons.Length; i++) {
-                int layerIndex = _neuronLayerDict[network.HiddenNeurons[i].ID] - 1;
-                LayerArray[layerIndex].Add(network.HiddenNeurons[i].ID);
-            }
-            //action neurons
-            for (int i = 0; i < network.ActionNeurons.Length; i++) {
-                LayerArray[_highestLayer - 1].Add(network.ActionNeurons[i].ID);
+                _neuronLayerDict.Add(neuron.ID, LayerArray.Count);
+                LayerArray[LayerArray.Count-1].Add(neuron.ID);
             }
         }
 
@@ -73,7 +53,6 @@ namespace EasyNNFramework.NEAT {
 
             if(!_neuronLayerDict.ContainsKey(neuronID)) _neuronLayerDict.Add(neuronID, highestSourceNeuronLayer + 1);
 
-            if (highestSourceNeuronLayer + 1 > _highestLayer) _highestLayer = highestSourceNeuronLayer + 1;
             return highestSourceNeuronLayer + 1;
         }
     }
