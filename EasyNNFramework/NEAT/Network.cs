@@ -208,6 +208,9 @@ namespace EasyNNFramework.NEAT {
             Neuron newNeuron = n.Clone();
             Neurons.Add(newNeuron.ID, newNeuron);
 
+            newNeuron.IncommingConnections.Clear();
+            newNeuron.OutgoingConnections.Clear();
+
             RecalculateNeuronArrays();
             RecalculateStructure(!AllowUselessHidden);
             
