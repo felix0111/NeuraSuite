@@ -412,30 +412,43 @@ namespace EasyNNFramework.NEAT {
         }
 
         /// <summary>
-        /// I can't even remember what I planned to do with this function.. DONT USE
+        /// Normally the network gets calculated in a feed forward style.
+        /// This function partially calculates the neurons in an unsorted order which reduces computing time.
+        /// <br/> <br/>
+        /// Does not account for recurrent connections at the moment.
         /// </summary>
         // TODO function still work in progress
-        public void CalculateStep(in float[] inputNeuronValues, ref float[] actionNeuronValues) {
-            // TODO might cause stack overflow exception??
-            while (!this.OutputsActivated()) {
-                foreach (var neuron in Neurons) {
-                    if(neuron.Value.Type != NeuronType.Input && neuron.Value.Type != NeuronType.Bias) neuron.Value.ResetState();
+        public void CalculateStep() {
 
-                    foreach (int connection in neuron.Value.IncommingConnections) {
-                        Neuron src = Neurons[Connections[connection].SourceID];
-                        if (src.Activated || src.Type == NeuronType.Bias || src.Type == NeuronType.Input) src.Activate();
+            //feed and activate each neuron values
+            for (int i = 0; i < InputNeurons.Length; i++) {
+                InputNeurons[i].ResetState();
+                InputNeurons[i].Input(InputValues[i]);
+                InputNeurons[i].Activate();
+            }
 
-                        src.Input(Connections[connection].Weight * src.Value);
-                    }
+            //feed and activate each hidden neuron
+            foreach (Neuron hiddenNeuron in HiddenNeurons) {
+                hiddenNeuron.ResetState();
+                foreach (int connection in hiddenNeuron.IncommingConnections) {
+                    Neuron src = Neurons[Connections[connection].SourceID];
+                    hiddenNeuron.Input(Connections[connection].Weight * src.Value);
+                }
+                hiddenNeuron.Activate();
+            }
+
+
+
+            //feed and activate each output neuron
+            for (int i = 0; i < ActionNeurons.Length; i++) {
+                ActionNeurons[i].ResetState();
+                foreach (int connection in ActionNeurons[i].IncommingConnections) {
+                    Neuron src = Neurons[Connections[connection].SourceID];
+                    ActionNeurons[i].Input(Connections[connection].Weight * src.Value);
                 }
 
-                foreach (var neuron in Neurons) {
-                    if (neuron.Value.Type != NeuronType.Input && neuron.Value.Type != NeuronType.Bias) {
-                        if (neuron.Value.Activated) {
-                            neuron.Value.Activate();
-                        }
-                    }
-                }
+                ActionNeurons[i].Activate();
+                OutputValues[i] = ActionNeurons[i].Value;
             }
         }
 

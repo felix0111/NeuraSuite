@@ -1,9 +1,10 @@
-﻿using System;
+﻿using EasyNNFramework.NEAT;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace EasyNNFramework.NEAT {
+namespace EasyNNFramework {
     public static class DebugProgram {
 
         private static readonly int NetworkCount = 200;
@@ -44,7 +45,7 @@ namespace EasyNNFramework.NEAT {
             run.Start();
 
             int currentGeneration = 1;
-            float bestFitness = 0f;
+            Network bestNetwork;
             do {
                 if (currentGeneration >= MaxGenerations) break;
 
@@ -87,11 +88,11 @@ namespace EasyNNFramework.NEAT {
 
 
                 //show some data
-                bestFitness = neat.NetworkCollection.Values.Max(o => o.Fitness);
-                Console.Write("\rCurrent generation: {0:D3} Species amount: {1:D3} Comp.threshold: {2:F2} Best accuracy: {3:F1}% accuracy", currentGeneration, neat.Species.Count, neat.SpeciationOptions.CompatabilityThreshold, (bestFitness * 100f));
+                bestNetwork = neat.NetworkCollection.MaxBy(o => o.Value.Fitness).Value;
+                Console.Write("\rCurrent generation: {0:D3} Species amount: {1:D3} Comp.threshold: {2:F2} Best accuracy: {3:F1}% accuracy", currentGeneration, neat.Species.Count, neat.SpeciationOptions.CompatabilityThreshold, bestNetwork.Fitness * 100f);
                 currentGeneration++;
 
-            } while (bestFitness <= 0.99f);
+            } while (bestNetwork.Fitness <= 0.99f);
             
             //show performance of population, overall performance might be affected by Console.Write(...) in while loop
             run.Stop();
@@ -147,7 +148,7 @@ namespace EasyNNFramework.NEAT {
             //set inputs, 4th input is bias
             network.InputValues = new [] { in1, in2, in3, 1f };
 
-            network.CalculateNetwork();
+            network.CalculateStep();
 
             //expected value
             int expectedOutput = LogicXOR(LogicXOR(in1, in2), in3);
