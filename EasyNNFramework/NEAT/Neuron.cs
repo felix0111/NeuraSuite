@@ -125,7 +125,10 @@ namespace EasyNNFramework.NEAT {
 
         public override bool Equals(object obj) => Equals(obj as Neuron);
 
-        public static bool operator ==(Neuron lf, Neuron ri) => lf.Equals(ri);
+        public static bool operator ==(Neuron lf, Neuron ri) {
+            if (lf == null) return ri == null;
+            return lf.Equals(ri);
+        }
 
         public static bool operator !=(Neuron lf, Neuron ri) => !(lf==ri);
 
