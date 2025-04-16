@@ -370,6 +370,7 @@ namespace EasyNNFramework.NEAT {
             for (int i = 0; i < InputNeurons.Length; i++) {
                 InputNeurons[i].ResetState();
                 InputNeurons[i].Input(InputValues[i]);
+                InputNeurons[i].Activate();
             }
             for (int i = 0; i < HiddenNeurons.Length; i++) {
                 HiddenNeurons[i].ResetState();
@@ -386,7 +387,7 @@ namespace EasyNNFramework.NEAT {
 
             //calculate all neurons layer by layer
             //first sum all values from incomming connections, then activate neuron, goto next layer
-            for (int layerIndex = 0; layerIndex < _ls.LayerArray.Count; layerIndex++) {
+            for (int layerIndex = 1; layerIndex < _ls.LayerArray.Count; layerIndex++) {
                 //for each neuron id in layer
                 for (int i = 0; i < _ls.LayerArray[layerIndex].Count; i++) {
                     Neuron target = Neurons[_ls.LayerArray[layerIndex][i]];
