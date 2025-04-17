@@ -126,15 +126,21 @@ namespace EasyNNFramework.NEAT {
         public override bool Equals(object obj) => Equals(obj as Neuron);
 
         public static bool operator ==(Neuron lf, Neuron ri) {
-            if (lf == null) return ri == null;
+            if ((object)lf == null) return (object)ri == null;
             return lf.Equals(ri);
         }
 
-        public static bool operator !=(Neuron lf, Neuron ri) => !(lf==ri);
+        public static bool operator !=(Neuron lf, Neuron ri) => !(lf == ri);
 
         public override int GetHashCode() => ID.GetHashCode();
 
-        public bool Equals(Neuron obj) => obj != null && obj.ID == ID;
+        public bool Equals(Neuron obj) {
+            if (ReferenceEquals(obj, null))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            return obj.ID.Equals(ID);
+        }
 
         //even though this is a struct, the two lists are ref type and need to be newly created
         public Neuron Clone() {
