@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace EasyNNFramework.NEAT {
+namespace NeuraSuite.NEAT {
 
     [Serializable]
     public class Network {

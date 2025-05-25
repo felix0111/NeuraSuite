@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 
-namespace EasyNNFramework.NEAT {
+namespace NeuraSuite.NEAT {
 
     [Serializable]
     public class Neuron : IEquatable<Neuron> {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
-using EasyNNFramework.NEAT;
+using NeuraSuite.NEAT;
 
-namespace EasyNNFramework; 
+namespace NeuraSuite; 
 
 public static class NNUtility {
 

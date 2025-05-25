@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EasyNNFramework.NEAT {
+namespace NeuraSuite.NEAT {
 
     [Serializable]
     public struct LayerStructure {

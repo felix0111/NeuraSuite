@@ -1,10 +1,10 @@
-﻿using EasyNNFramework.NEAT;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using NeuraSuite.NEAT;
 
-namespace EasyNNFramework {
+namespace NeuraSuite {
     public static class DebugProgram {
 
         private static readonly int NetworkCount = 200;

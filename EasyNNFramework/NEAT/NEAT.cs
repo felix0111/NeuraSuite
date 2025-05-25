@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using Random = System.Random;
 
-namespace EasyNNFramework.NEAT {
+namespace NeuraSuite.NEAT {
 
     [Serializable]
     public class Neat {
