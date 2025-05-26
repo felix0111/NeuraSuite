@@ -6,7 +6,7 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NeuraSuite.NEAT {
+namespace NeuraSuite.Neat {
 
     [Serializable]
     public class Species {

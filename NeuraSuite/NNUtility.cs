@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
-using NeuraSuite.NEAT;
+using NeuraSuite.Neat;
 
 namespace NeuraSuite; 
 

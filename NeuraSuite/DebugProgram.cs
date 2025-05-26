@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using NeuraSuite.NEAT;
+using NeuraSuite.Neat;
 
 namespace NeuraSuite {
     public static class DebugProgram {

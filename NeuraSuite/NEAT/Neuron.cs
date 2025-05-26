@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 
-namespace NeuraSuite.NEAT {
+namespace NeuraSuite.Neat {
 
     [Serializable]
     public class Neuron : IEquatable<Neuron> {

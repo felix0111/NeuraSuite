@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Random = System.Random;
 
-namespace NeuraSuite.NEAT {
+namespace NeuraSuite.Neat {
     public static class NEATUtility {
 
         /// <summary>
