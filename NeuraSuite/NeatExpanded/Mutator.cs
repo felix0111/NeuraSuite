@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NeuraSuite.Neat {
+namespace NeuraSuite.NeatExpanded {
     public static class Mutator {
 
         //returns true if mutated

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using NeuraSuite.Neat;
+using NeuraSuite.NeatExpanded;
 
 namespace NeuraSuite {
     public static class DebugProgram {
@@ -29,7 +29,7 @@ namespace NeuraSuite {
             GetXORTemplates(out List<Neuron> insN, out List<Neuron> outsN);
 
             //create NEAT object which handles all neural networks
-            Neat neat = new Neat(insN.ToArray(), outsN.ToArray(), SOptions);
+            NeatExpanded.Neat neat = new NeatExpanded.Neat(insN.ToArray(), outsN.ToArray(), SOptions);
 
             //populate NEAT
             for (int i = 0; i < NetworkCount; i++) neat.AddNetwork(i);
@@ -107,7 +107,7 @@ namespace NeuraSuite {
         /// <summary>
         /// Rewards networks with many neurons. Just for testing/debugging performance because it does not really make much sense for anything other.
         /// </summary>
-        public static void PerformanceTest(Neat neat) {
+        public static void PerformanceTest(NeatExpanded.Neat neat) {
             foreach (var network in neat.NetworkCollection) {
 
                 //fill inputs with random values
@@ -123,7 +123,7 @@ namespace NeuraSuite {
         /// <summary>
         /// Tests how good each neural network solves a 3 input XOR logic gate. Very simple neural network test.
         /// </summary>
-        public static void TestXOR(Neat neat) {
+        public static void TestXOR(NeatExpanded.Neat neat) {
 
             foreach (var network in neat.NetworkCollection) {
                 

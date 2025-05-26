@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using Random = System.Random;
 
-namespace NeuraSuite.Neat {
+namespace NeuraSuite.NeatExpanded {
 
     [Serializable]
     public class Neat {
@@ -135,15 +135,15 @@ namespace NeuraSuite.Neat {
         }
 
         /// <summary>
-        /// This function will try to dynamically adjust <see cref="NeuraSuite.Neat.SpeciationOptions.CompatabilityThreshold"/> so that the amount of species matches <see cref="targetSpeciesAmount"/>.
+        /// This function will try to dynamically adjust <see cref="Neat.SpeciationOptions.CompatabilityThreshold"/> so that the amount of species matches <see cref="targetSpeciesAmount"/>.
         /// <br/>
         /// 
         /// </summary>
         /// <param name="step">
-        /// How much the <see cref="NeuraSuite.Neat.SpeciationOptions.CompatabilityThreshold"/> changes with each adjustment.
-        /// Using a fraction of <see cref="NeuraSuite.Neat.SpeciationOptions.DisjointFactor"/> is suggested.
+        /// How much the <see cref="Neat.SpeciationOptions.CompatabilityThreshold"/> changes with each adjustment.
+        /// Using a fraction of <see cref="Neat.SpeciationOptions.DisjointFactor"/> is suggested.
         /// <br/>
-        /// When <see cref="NeuraSuite.Neat.SpeciationOptions.WeightFactor"/> is higher than 0, you may have to increase the step size significantly.
+        /// When <see cref="Neat.SpeciationOptions.WeightFactor"/> is higher than 0, you may have to increase the step size significantly.
         /// </param>
         // TODO change step size by difference and MaxSpecies
         public void AdjustCompatabilityFactor(float step, int targetSpeciesAmount) {
@@ -278,7 +278,7 @@ namespace NeuraSuite.Neat {
 
         /// <summary>
         /// Returns a list of tuple: (speciesID, newPopSize). This is used to determine the size of each species in a new population.
-        /// <see cref="NeuraSuite.Neat.SpeciationOptions.MaxSpeciesPerPopulation"/> determines the maximum variety of species in the new population.
+        /// <see cref="Neat.SpeciationOptions.MaxSpeciesPerPopulation"/> determines the maximum variety of species in the new population.
         /// <br/>
         /// Each network must have a <see cref="Network.Fitness"/> value.
         /// </summary>
