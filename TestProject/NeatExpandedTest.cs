@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NeuraSuite.NeatExpanded;
 using System.Diagnostics;
-using System.Linq;
-using NeuraSuite.NeatExpanded;
 
-namespace NeuraSuite {
-    public static class DebugProgram {
-
+namespace TestProject
+{
+    public class NeatExpandedTest {
         private static readonly int NetworkCount = 200;
         private static readonly float MutationChance = 0.5f;
         private static readonly int MutationCount = 4;
@@ -17,11 +14,11 @@ namespace NeuraSuite {
 
         //DefaultActivationFunction is not specified because we use RandomDefaultActivationFunction
         private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.07f, 0.65f, 0.05f, 0.03f, 0.03f, 0.05f, 0.02f, default, ActivationFunctionPool, true);
-        
+
         private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 0.6f, 20, false);
 
-        static void Main(string[] args) {
-            
+        public static void RunTest() {
+
             //restart point
             restart:
 
@@ -29,7 +26,7 @@ namespace NeuraSuite {
             GetXORTemplates(out List<Neuron> insN, out List<Neuron> outsN);
 
             //create NEAT object which handles all neural networks
-            NeatExpanded.Neat neat = new NeatExpanded.Neat(insN.ToArray(), outsN.ToArray(), SOptions);
+            Neat neat = new Neat(insN.ToArray(), outsN.ToArray(), SOptions);
 
             //populate NEAT
             for (int i = 0; i < NetworkCount; i++) neat.AddNetwork(i);
@@ -78,7 +75,7 @@ namespace NeuraSuite {
 
 
                 //neat.AdjustCompatabilityFactor(0.01f, 60);
-                
+
                 //speciate every network because mutation might throw a network out of its species
                 neat.SpeciateAll();
                 neat.RemoveEmptySpecies();
@@ -93,13 +90,13 @@ namespace NeuraSuite {
                 currentGeneration++;
 
             } while (bestNetwork.Fitness <= 0.99f);
-            
+
             //show performance of population, overall performance might be affected by Console.Write(...) in while loop
             run.Stop();
             Console.WriteLine("\nTotal amount of generations: {0} Time elapsed: {1}s", currentGeneration, run.ElapsedMilliseconds / 1000f);
             run.Reset();
 
-            Console.WriteLine("Enter 'exit' to close.");
+            Console.WriteLine("Enter 'exit' to stop test.");
             if (Console.ReadLine() == "exit") return;
             goto restart;
         }
@@ -107,7 +104,7 @@ namespace NeuraSuite {
         /// <summary>
         /// Rewards networks with many neurons. Just for testing/debugging performance because it does not really make much sense for anything other.
         /// </summary>
-        public static void PerformanceTest(NeatExpanded.Neat neat) {
+        public static void PerformanceTest(Neat neat) {
             foreach (var network in neat.NetworkCollection) {
 
                 //fill inputs with random values
@@ -123,10 +120,10 @@ namespace NeuraSuite {
         /// <summary>
         /// Tests how good each neural network solves a 3 input XOR logic gate. Very simple neural network test.
         /// </summary>
-        public static void TestXOR(NeatExpanded.Neat neat) {
+        public static void TestXOR(Neat neat) {
 
             foreach (var network in neat.NetworkCollection) {
-                
+
                 float fitness = 0;
                 fitness += EvaluateXOR(0, 0, 0, network.Value);
                 fitness += EvaluateXOR(0, 0, 1, network.Value);
@@ -139,14 +136,14 @@ namespace NeuraSuite {
                 network.Value.Fitness = fitness / 8f;
             }
         }
-        
+
         /// <summary>
         /// Returns the difference between the expected XOR result and the network result, a value between 0 and 1
         /// </summary>
         public static float EvaluateXOR(int in1, int in2, int in3, Network network) {
 
             //set inputs, 4th input is bias
-            network.InputValues = new [] { in1, in2, in3, 1f };
+            network.InputValues = new[] { in1, in2, in3, 1f };
 
             network.CalculateStep();
 
@@ -175,7 +172,7 @@ namespace NeuraSuite {
         /// Creates input and output neuron templates matching the XOR test.
         /// </summary>
         public static void GetXORTemplates(out List<Neuron> input, out List<Neuron> output) {
-            Neuron in1 = new Neuron( 0, ActivationFunction.IDENTITY, NeuronType.Input);
+            Neuron in1 = new Neuron(0, ActivationFunction.IDENTITY, NeuronType.Input);
             Neuron in2 = new Neuron(1, ActivationFunction.IDENTITY, NeuronType.Input);
             Neuron in3 = new Neuron(2, ActivationFunction.IDENTITY, NeuronType.Input);
             Neuron bias = new Neuron(3, ActivationFunction.IDENTITY, NeuronType.Bias);
