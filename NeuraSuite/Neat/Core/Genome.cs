@@ -6,6 +6,16 @@ namespace NeuraSuite.Neat.Core {
         public Dictionary<int, NodeGene> Nodes = new();
         public Dictionary<int, ConnectionGene> Connections = new();
 
+        public Genome(List<NodeGene> defaultNodes = null, List<ConnectionGene> defaultConnections = null) {
+            if (defaultNodes != null) {
+                foreach (var node in defaultNodes) Nodes.Add(node.Id, node);
+            }
+
+            if (defaultConnections != null) {
+                foreach (var connection in defaultConnections) Connections.Add(connection.Innovation, connection);
+            }
+        }
+
         public bool AddConnection(int innovation, int startId, int endId) => Connections.TryAdd(innovation, new ConnectionGene(innovation, startId, endId));
 
         public bool ToggleConnection(int innovation) {
