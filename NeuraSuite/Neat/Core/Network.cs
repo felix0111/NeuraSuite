@@ -1,12 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace NeuraSuite.Neat.Core {
+    public class Network {
 
-namespace NeuraSuite.Neat.Core
-{
-    public class Network
-    {
+        //dict of every NodeGene, identified by its id
+        private Dictionary<int, NodeGene> _nodes = new();
+
+        //dict of every node value, identified by its id
+        private Dictionary<int, double> _nodeValues = new();
+
+        //sorted by the endId which should make evaluation more efficient
+        private Dictionary<int, List<ConnectionGene>> _connections = new();
+
+        /// <summary>
+        /// Create a new network from a genome. Modifying the genome after creation does not reflect to the network!
+        /// </summary>
+        public Network(Genome genome) {
+            foreach (var node in genome.Nodes.Values) {
+                _nodes.Add(node.Id, node);
+                _nodeValues.Add(node.Id, 0);
+            }
+
+            //pre-sort connections by endId
+            foreach (var connection in genome.Connections.Values) {
+                _connections.TryAdd(connection.EndId, new List<ConnectionGene>());
+                _connections[connection.EndId].Add(connection);
+            }
+        }
+
+        /// <summary>
+        /// Set the value of a node. Values of input nodes only have to be set once.
+        /// </summary>
+        public void SetValue(int nodeId, double value) => _nodeValues[nodeId] = value;
+
+        /// <summary>
+        /// Get the value of a node.
+        /// </summary>
+        public double GetValue(int nodeId) => _nodeValues[nodeId];
+
+        /// <summary>
+        /// Feed-Forward all node-values and activate all nodes (except input nodes).
+        /// </summary>
+        /// <param name="passes">The amount of times the Feed-Forward process is done. Used to reduce signal delay in larger networks.</param>
+        public void Evaluate(int passes) {
+            for (int i = 0; i < passes; i++) {
+                foreach (var node in _nodes) {
+                    //skip input nodes or nodes that have no incomming connections
+                    if(node.Value.Type == NodeType.Input || !_connections.ContainsKey(node.Key)) continue;
+
+                    //foreach connection that ends at this neuron
+                    double sum = 0;
+                    foreach (var connection in _connections[node.Key]) {
+                        if (!connection.Enabled) continue;
+                        sum += _nodeValues[connection.StartId] * connection.Weight;
+                    }
+
+                    //apply sigmoid and update value
+                    _nodeValues[node.Key] = 1D / (1D + Math.Exp(-4.9D * sum));
+                }
+            }
+        }
     }
 }
