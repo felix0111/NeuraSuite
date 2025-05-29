@@ -16,15 +16,20 @@ namespace NeuraSuite.Neat.Core {
         /// Create a new network from a genome. Modifying the genome after creation does not reflect to the network!
         /// </summary>
         public Network(Genome genome) {
-            foreach (var node in genome.Nodes.Values) {
-                _nodes.Add(node.Id, node);
-                _nodeValues.Add(node.Id, 0);
-            }
-
             //pre-sort connections by endId
             foreach (var connection in genome.Connections.Values) {
+                if(!connection.Enabled) continue;
+
                 _connections.TryAdd(connection.EndId, new List<ConnectionGene>());
                 _connections[connection.EndId].Add(connection);
+            }
+
+            foreach (var node in genome.Nodes.Values) {
+                //don't add nodes without incomming connections, except input nodes
+                if (!_connections.ContainsKey(node.Id) && node.Type != NodeType.Input) continue;
+
+                _nodes.Add(node.Id, node);
+                _nodeValues.Add(node.Id, 0);
             }
         }
 
@@ -45,8 +50,8 @@ namespace NeuraSuite.Neat.Core {
         public void Evaluate(int passes) {
             for (int i = 0; i < passes; i++) {
                 foreach (var node in _nodes) {
-                    //skip input nodes or nodes that have no incomming connections
-                    if(node.Value.Type == NodeType.Input || !_connections.ContainsKey(node.Key)) continue;
+                    //skip input nodes
+                    if(node.Value.Type == NodeType.Input) continue;
 
                     //foreach connection that ends at this neuron
                     double sum = 0;
