@@ -3,6 +3,8 @@
 namespace NeuraSuite.Neat.Core {
     public class Genome {
 
+        public double Fitness = 0D;
+
         public Dictionary<int, NodeGene> Nodes = new();
         public Dictionary<int, ConnectionGene> Connections = new();
 
