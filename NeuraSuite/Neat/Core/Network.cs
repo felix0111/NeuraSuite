@@ -3,6 +3,9 @@ using System.Collections.Generic;
 namespace NeuraSuite.Neat.Core {
     public class Network {
 
+        //the underlying genome
+        public Genome Genome;
+
         //dict of every NodeGene, identified by its id
         private Dictionary<int, NodeGene> _nodes = new();
 
@@ -16,15 +19,17 @@ namespace NeuraSuite.Neat.Core {
         /// Create a new network from a genome. Modifying the genome after creation does not reflect to the network!
         /// </summary>
         public Network(Genome genome) {
+            Genome = genome;
+
             //pre-sort connections by endId
-            foreach (var connection in genome.Connections.Values) {
+            foreach (var connection in Genome.Connections.Values) {
                 if(!connection.Enabled) continue;
 
                 _connections.TryAdd(connection.EndId, new List<ConnectionGene>());
                 _connections[connection.EndId].Add(connection);
             }
 
-            foreach (var node in genome.Nodes.Values) {
+            foreach (var node in Genome.Nodes.Values) {
                 //don't add nodes without incomming connections, except input nodes
                 if (!_connections.ContainsKey(node.Id) && node.Type != NodeType.Input) continue;
 
