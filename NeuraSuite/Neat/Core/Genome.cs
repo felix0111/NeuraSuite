@@ -44,10 +44,13 @@ namespace NeuraSuite.Neat.Core {
 
             var old = Connections[oldInnovation];
 
+            //dont split disabled connection
+            if(!old.Enabled) return false;
+
             //disable old connection and add two new connections
-            if (old.Enabled) ToggleConnection(oldInnovation);
+            ToggleConnection(oldInnovation);
             Connections.Add(innovationStartToNew, new ConnectionGene(innovationStartToNew, old.StartId, newNodeId));
-            Connections.Add(innovationNewToEnd, new ConnectionGene(innovationNewToEnd, newNodeId, old.EndId));
+            Connections.Add(innovationNewToEnd, new ConnectionGene(innovationNewToEnd, newNodeId, old.EndId, old.Weight));
 
             //add the new node
             Nodes.Add(newNodeId, new NodeGene(newNodeId, NodeType.Hidden));
