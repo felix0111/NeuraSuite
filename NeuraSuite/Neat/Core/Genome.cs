@@ -22,10 +22,9 @@ namespace NeuraSuite.Neat.Core {
             if (!Connections.ContainsKey(innovation)) return false;
 
             var con = Connections[innovation];
-            con.Enabled = false;
+            con.Enabled = !con.Enabled;
 
-            Connections.Remove(innovation);
-            Connections.Add(innovation, con);
+            Connections[innovation] = con;
             return true;
         }
 
