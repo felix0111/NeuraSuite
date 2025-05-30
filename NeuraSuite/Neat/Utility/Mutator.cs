@@ -12,19 +12,17 @@ namespace NeuraSuite.Neat.Utility
         /// Randomly mutates a genome according to the specified MutationOptions.
         /// </summary>
         public static void Mutate(this Genome g, InnovationManager im, MutationOptions options) {
-            double rnd = _random.NextDouble();
-            if (rnd <= options.AddConnectionChance) {
+            //chance to add connection
+            if (_random.NextDouble() <= options.AddConnectionChance) {
                 var neurons = g.Nodes.Keys.ToArray();
 
                 var start = neurons[_random.Next(neurons.Length)];
                 var end = neurons[_random.Next(neurons.Length)];
                 g.AddConnection(im.GetInnovation(start, end), start, end);
-            } else if (rnd <= options.AddConnectionChance + options.ToggleConnectionChance) {
-                if (g.Connections.Count == 0) return;
+            }
 
-                var con = g.Connections.Keys.ToArray()[_random.Next(g.Connections.Count)];
-                g.ToggleConnection(con);
-            } else if (rnd <= options.AddConnectionChance + options.ToggleConnectionChance + options.SplitConnectionChance) {
+            //chance to split connection
+            if (_random.NextDouble() <= options.SplitConnectionChance) {
                 if (g.Connections.Count == 0) return;
 
                 var con = g.Connections.Values.ToArray()[_random.Next(g.Connections.Count)];
@@ -32,7 +30,10 @@ namespace NeuraSuite.Neat.Utility
 
                 int newNodeId = im.NewNodeId;
                 g.SplitConnection(con.Innovation, newNodeId, im.GetInnovation(con.StartId, newNodeId), im.GetInnovation(newNodeId, con.EndId));
-            } else if (rnd <= options.AddConnectionChance + options.ToggleConnectionChance + options.SplitConnectionChance + options.ChangeWeightChance) {
+            }
+
+            //chance to change weight (or reset to new random value)
+            if (_random.NextDouble() <= options.ChangeWeightChance) {
                 if (g.Connections.Count == 0) return;
 
                 var con = g.Connections.Values.ToArray()[_random.Next(g.Connections.Count)];
