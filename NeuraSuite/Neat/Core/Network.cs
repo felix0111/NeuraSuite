@@ -41,12 +41,16 @@ namespace NeuraSuite.Neat.Core {
         /// <summary>
         /// Set the value of a node. Values of input nodes only have to be set once.
         /// </summary>
-        public void SetValue(int nodeId, double value) => _nodeValues[nodeId] = value;
+        public void SetValue(int nodeId, double value) {
+            //if node is not present, skip
+            if (!_nodeValues.ContainsKey(nodeId)) return;
+            _nodeValues[nodeId] = value;
+        }
 
         /// <summary>
         /// Get the value of a node.
         /// </summary>
-        public double GetValue(int nodeId) => _nodeValues[nodeId];
+        public double GetValue(int nodeId) => _nodeValues.TryGetValue(nodeId, out var value) ? value : 0D;
 
         /// <summary>
         /// Feed-Forward all node-values and activate all nodes (except input nodes).
