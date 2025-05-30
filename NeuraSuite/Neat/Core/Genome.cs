@@ -63,6 +63,8 @@ namespace NeuraSuite.Neat.Core {
         public Genome Clone() {
             Genome g = new();
 
+            g.Fitness = Fitness;
+
             foreach (var node in Nodes) g.Nodes.Add(node.Key, node.Value);
             foreach (var connection in Connections) g.Connections.Add(connection.Key, connection.Value);
 
