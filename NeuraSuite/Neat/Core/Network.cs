@@ -23,6 +23,7 @@ namespace NeuraSuite.Neat.Core {
 
             //pre-sort connections by endId
             foreach (var connection in Genome.Connections.Values) {
+                //no need for disabled connections
                 if(!connection.Enabled) continue;
 
                 _connections.TryAdd(connection.EndId, new List<ConnectionGene>());
@@ -30,8 +31,8 @@ namespace NeuraSuite.Neat.Core {
             }
 
             foreach (var node in Genome.Nodes.Values) {
-                //don't add nodes without incomming connections, except input nodes
-                if (!_connections.ContainsKey(node.Id) && node.Type != NodeType.Input) continue;
+                //if node not input and does not have incomming connections, dont add
+                if(node.Type != NodeType.Input && !_connections.ContainsKey(node.Id)) continue;
 
                 _nodes.Add(node.Id, node);
                 _nodeValues.Add(node.Id, 0);
@@ -65,13 +66,14 @@ namespace NeuraSuite.Neat.Core {
                     //foreach connection that ends at this neuron
                     double sum = 0;
                     foreach (var connection in _connections[node.Key]) {
-                        if (!connection.Enabled) continue;
-                        sum += _nodeValues[connection.StartId] * connection.Weight;
+                        sum += GetValue(connection.StartId) * connection.Weight;
                     }
 
                     //apply sigmoid and update value
-                    _nodeValues[node.Key] = 1D / (1D + Math.Exp(-4.9D * sum));
+                    SetValue(node.Key, 1D / (1D + Math.Exp(-4.9D * sum)));
                 }
+            }
+        }
 
         /// <summary>
         /// Resets all node values to 0D.
