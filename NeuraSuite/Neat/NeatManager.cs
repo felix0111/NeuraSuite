@@ -57,7 +57,7 @@ namespace NeuraSuite.Neat {
 
             //create new population
             var newPop = new List<Genome>();
-            foreach (var species in Species) {
+            foreach (var species in Species.Where(o => o.Members.Count != 0)) {
                 //remove worst
                 species.RemoveWorstMembers(NeatOptions.RemoveWorstPercentage);
 
@@ -120,18 +120,18 @@ namespace NeuraSuite.Neat {
         /// Calculates the new amount of offspring for each species.
         /// Make sure that all genomes fitnesses are adjusted to the species size!
         /// </summary>
-        private Tuple<Species, int>[] GetOffspringAmount() {
-            var speciesOffspring = new Tuple<Species, int>[Species.Count];
+        private List<Tuple<Species, int>> GetOffspringAmount() {
+            var speciesOffspring = new List<Tuple<Species, int>>();
 
             double globalAdjustedFitnessSum = Species.Sum(s => s.Members.Sum(m => m.Fitness / s.Members.Count));
 
-            for (int i = 0; i < Species.Count; i++) {
-                double localAdjustedFitnessSum = Species[i].Members.Sum(o => o.Fitness / Species[i].Members.Count);
+            foreach (Species species in Species.Where(o => o.Members.Count != 0)) {
+                double localAdjustedFitnessSum = species.Members.Sum(o => o.Fitness / species.Members.Count);
 
                 int eliteCount = Species.Count(o => o.Members.Count > 5);
                 int amount = (int)Math.Round(localAdjustedFitnessSum / globalAdjustedFitnessSum * (NeatOptions.TargetPopulationSize - eliteCount));
                 
-                speciesOffspring[i] = new (Species[i], amount);
+                speciesOffspring.Add(new (species, amount));
             }
 
             return speciesOffspring;
