@@ -68,6 +68,13 @@ namespace NeuraSuite.Neat.Core {
                     //apply sigmoid and update value
                     _nodeValues[node.Key] = 1D / (1D + Math.Exp(-4.9D * sum));
                 }
+
+        /// <summary>
+        /// Resets all node values to 0D.
+        /// </summary>
+        public void Reset() {
+            foreach (var nodeValue in _nodeValues) {
+                _nodeValues[nodeValue.Key] = 0D;
             }
         }
     }
