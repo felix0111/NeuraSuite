@@ -50,11 +50,10 @@ namespace NeuraSuite.Neat.Utility
 
     public struct MutationOptions {
 
-        public double AddConnectionChance, ToggleConnectionChance, SplitConnectionChance, ChangeWeightChance, MaxWeightDelta;
+        public double AddConnectionChance, SplitConnectionChance, ChangeWeightChance, MaxWeightDelta;
 
-        public MutationOptions(double addConnectionChance, double toggleConnectionChance,double splitConnectionChance, double changeWeightChance, double maxWeightDelta) {
+        public MutationOptions(double addConnectionChance, double splitConnectionChance, double changeWeightChance, double maxWeightDelta) {
             AddConnectionChance = addConnectionChance;
-            ToggleConnectionChance = toggleConnectionChance;
             SplitConnectionChance = splitConnectionChance;
             ChangeWeightChance = changeWeightChance;
             MaxWeightDelta = maxWeightDelta;
