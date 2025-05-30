@@ -18,16 +18,10 @@ namespace NeuraSuite.Neat.Core {
             }
         }
 
-        public bool AddConnection(int innovation, int startId, int endId) => Connections.TryAdd(innovation, new ConnectionGene(innovation, startId, endId));
-
-        public bool ToggleConnection(int innovation) {
-            if (!Connections.ContainsKey(innovation)) return false;
-
-            var con = Connections[innovation];
-            con.Enabled = !con.Enabled;
-
-            Connections[innovation] = con;
-            return true;
+        public bool AddConnection(int innovation, int startId, int endId) {
+            //dont allow connections to input neurons
+            if (Nodes[endId].Type == NodeType.Input) return false;
+            return Connections.TryAdd(innovation, new ConnectionGene(innovation, startId, endId));
         }
 
         public bool ChangeWeight(int innovation, double weight) {
@@ -49,8 +43,11 @@ namespace NeuraSuite.Neat.Core {
             //dont split disabled connection
             if(!old.Enabled) return false;
 
-            //disable old connection and add two new connections
-            ToggleConnection(oldInnovation);
+            //disable old connection
+            old.Enabled = false;
+            Connections[oldInnovation] = old;
+
+            //add two new connections
             Connections.Add(innovationStartToNew, new ConnectionGene(innovationStartToNew, old.StartId, newNodeId));
             Connections.Add(innovationNewToEnd, new ConnectionGene(innovationNewToEnd, newNodeId, old.EndId, old.Weight));
 
