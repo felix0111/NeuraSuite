@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using NeuraSuite.Neat.Core;
 
 namespace NeuraSuite.Neat.Utility {
@@ -17,6 +18,14 @@ namespace NeuraSuite.Neat.Utility {
         //key: (startNodeId, endNodeId) value: innovation
         //innovations are zero-based
         private Dictionary<(int, int), int> _connectionInnovations = new();
+
+        public InnovationManager(Genome initialGenome) {
+            foreach (var connection in initialGenome.Connections.Values) {
+                _connectionInnovations.Add((connection.StartId, connection.EndId), connection.Innovation);
+            }
+
+            _nodeCounter = initialGenome.Nodes.Values.Max(o => o.Id) + 1;
+        }
 
         /// <summary>
         /// Returns the innovation for the specified connection. Returns a new innovation when not found.
