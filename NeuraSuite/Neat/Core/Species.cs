@@ -8,6 +8,9 @@ namespace NeuraSuite.Neat.Core {
         public Genome Representative;
         public List<Genome> Members = new();
 
+        private double _bestFitness = 0D;
+        private int _generationCounter = 0;
+
         public Species(Genome representative) {
             Representative = representative.Clone();
         }
@@ -48,6 +51,21 @@ namespace NeuraSuite.Neat.Core {
         /// </summary>
         public bool Compatible(Genome genome, double threshold) {
             return Distance(genome, Representative, 1D, 1D, 0.4D) < threshold;
+        }
+
+        /// <summary>
+        /// Checks if this species did not improve fitness for x generations.
+        /// </summary>
+        /// <param name="generationThreshold">The amount of generations this species has to stagnate until it counts as stagnating.</param>
+        public bool IsStagnant(int generationThreshold) {
+            double best = Members.Max(o => o.Fitness);
+            if (_bestFitness < best) {
+                _bestFitness = best;
+                _generationCounter = 0;
+                return false;
+            }
+
+            return ++_generationCounter >= generationThreshold;
         }
 
         /// <summary>
