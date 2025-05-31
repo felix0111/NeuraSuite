@@ -77,7 +77,7 @@ namespace NeuraSuite.Neat.Core {
 
             //number of genes in the larger genome
             double n = Math.Max(genome1.Connections.Count, genome2.Connections.Count);
-            if (n < 20) n = 1;
+            //if (n < 20) n = 1;
 
             //calculates the average weight difference of all matching genes
             double w = 0D;
