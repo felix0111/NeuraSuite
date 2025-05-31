@@ -74,7 +74,6 @@ namespace NeuraSuite.Neat {
                 if (species.Members.Count > 5) {
                     var elite = species.Members.MaxBy(o => o.Fitness);
                     elites.Add(elite.Clone());
-                    species.Members.Remove(elite);
                 }
 
                 //create offspring from remaining genomes in species
