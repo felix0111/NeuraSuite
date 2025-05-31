@@ -91,6 +91,13 @@ namespace NeuraSuite.Neat {
                 }
             }
 
+            //fill population with random genomes from the previous generation
+            if (newPop.Count == 0 && elites.Count == 0) {
+                for (int i = 0; i < NeatOptions.TargetPopulationSize; i++) {
+                    newPop.Add(EntirePopulation[_random.Next(EntirePopulation.Count)]);
+                }
+            }
+
             //replace old population
             EntirePopulation = newPop;
 
