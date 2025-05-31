@@ -58,6 +58,9 @@ namespace NeuraSuite.Neat {
             //create new population
             var newPop = new List<Genome>();
             foreach (var species in Species.Where(o => o.Members.Count != 0)) {
+                //check if species is stagnant
+                if (species.IsStagnant(NeatOptions.StagnationThreshold)) continue;
+
                 //remove worst
                 species.RemoveWorstMembers(NeatOptions.RemoveWorstPercentage);
 

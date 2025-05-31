@@ -22,11 +22,18 @@
         /// </summary>
         public double EnableChance;
 
-        public NeatOptions(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance) {
+        /// <summary>
+        /// The amount of generations a species fitness can not improve before it counts as stagnant.
+        /// When a species counts as stagnant, it might not produce any offspring. 
+        /// </summary>
+        public int StagnationThreshold;
+
+        public NeatOptions(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int stagnationThreshold) {
             TargetPopulationSize = targetPopulationSize;
             RemoveWorstPercentage = removeWorstPercentage;
             CrossoverChance = crossoverChance;
             EnableChance = enableChance;
+            StagnationThreshold = stagnationThreshold;
         }
     }
 }
