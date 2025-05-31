@@ -132,6 +132,9 @@ namespace NeuraSuite.Neat {
                 //add to species
                 species.Members.Add(genome);
             }
+
+            //remove empty species
+            Species.RemoveAll(o => o.Members.Count == 0);
         }
 
         /// <summary>
