@@ -8,20 +8,29 @@ namespace TestProject {
         public static void RunTest() {
 
             MutationOptions mo = new (0.05D, 0.03D, 0.8D, 0.1D);
-            NeatOptions no = new (150, 0.1D, 0.75D, 0.25D);
+            NeatOptions no = new (150, 0.05D, 0.75D, 0.25D, 20, 0.8D);
 
             NeatManager nm = new NeatManager(GetPresetGenome(), no, mo);
 
             int counter = 0;
-            while (counter < 1000) {
+            while (counter < 10000) {
                 //tests and calculates fitness for the xor problem on current population
                 var phenos = nm.CreatePhenotypes();
                 TestXor(phenos);
 
-                //log average fitness
-                Console.WriteLine(nm.EntirePopulation.Max(o => o.Fitness));
+                //log
+                Console.Clear();
+                Console.WriteLine("Generation {0}", counter);
+                Console.WriteLine("Best Fitness of population: {0}", Math.Round(nm.EntirePopulation.Max(o => o.Fitness), 5));
+                int i = 1;
+                foreach (var species in nm.Species.Where(o => o.Members.Count != 0)) {
+                    Console.WriteLine("--Species {0} with {1} members--", i++, species.Members.Count);
+                    Console.WriteLine("    Avg. Fitness: {0}", Math.Round(species.Members.Average(o => o.Fitness), 5));
+                    var champion = species.Members.MaxBy(o => o.Fitness);
+                    Console.WriteLine("    Champion: Fitness: {0} Nodes: {1} Connections: {2}", champion.Fitness, champion.Nodes.Count, champion.Connections.Count);
+                }
 
-                //speciate, create offspring, mutate
+                //create offspring, mutate
                 nm.CompleteGeneration();
 
                 counter++;
