@@ -28,6 +28,8 @@ namespace NeuraSuite.Neat {
 
             //create start population
             for (int i = 0; i < NeatOptions.TargetPopulationSize; i++) EntirePopulation.Add(initialGenome.Clone());
+
+            Speciate();
         }
 
         /// <summary>
@@ -44,19 +46,19 @@ namespace NeuraSuite.Neat {
         }
 
         /// <summary>
-        /// Will dispose all networks, speciate genomes, crossover and mutate.
+        /// Will create a new population. If species or genomes have been manually altered, call <see cref="Speciate"/> before this!
+        /// <br/>
         /// Make sure to set the fitness of every genome!
         /// </summary>
         public void CompleteGeneration() {
             _phenotypes.Clear();
-
-            Speciate();
 
             //get offspring amount for each species
             var offspring = GetOffspringAmount();
 
             //create new population
             var newPop = new List<Genome>();
+            var elites = new List<Genome>();
             foreach (var species in Species.Where(o => o.Members.Count != 0)) {
                 //check if species is stagnant
                 if (species.IsStagnant(NeatOptions.StagnationThreshold)) continue;
@@ -67,7 +69,7 @@ namespace NeuraSuite.Neat {
                 //copy elite
                 if (species.Members.Count > 5) {
                     var elite = species.Members.MaxBy(o => o.Fitness);
-                    newPop.Add(elite);
+                    elites.Add(elite.Clone());
                     species.Members.Remove(elite);
                 }
 
@@ -84,16 +86,19 @@ namespace NeuraSuite.Neat {
                         newPop.Add(species.RandomByFitness(_random).Clone());
                     }
                 }
-
-                //clear species
-                species.Members.Clear();
             }
-
-            //mutate new population
-            foreach (var genome in newPop) genome.Mutate(InnovationManager, MutationOptions);
 
             //replace old population
             EntirePopulation = newPop;
+
+            //mutate new population
+            foreach (var genome in EntirePopulation) genome.Mutate(InnovationManager, MutationOptions);
+
+            //add elites unchanged
+            EntirePopulation.AddRange(elites);
+
+            //speciate population
+            Speciate();
         }
 
         /// <summary>
