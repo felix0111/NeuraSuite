@@ -66,7 +66,11 @@ namespace NeuraSuite.Neat {
                 //remove worst
                 species.RemoveWorstMembers(NeatOptions.RemoveWorstPercentage);
 
-                //copy elite
+                //select new representative by selecting a random member excluding worst members
+                //must be called before speciation
+                species.Representative = species.Members[_random.Next(species.Members.Count)];
+
+                //copy elite but let it remain in the species for now for creating offspring
                 if (species.Members.Count > 5) {
                     var elite = species.Members.MaxBy(o => o.Fitness);
                     elites.Add(elite.Clone());
