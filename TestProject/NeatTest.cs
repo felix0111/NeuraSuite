@@ -8,7 +8,7 @@ namespace TestProject {
         public static void RunTest() {
 
             MutationOptions mo = new (0.05D, 0.03D, 0.8D, 0.1D);
-            NeatOptions no = new (150, 0.05D, 0.75D, 0.25D, 20, 0.8D);
+            NeatOptions no = new (150, 0.05D, 0.75D, 0.25D, 100, 0.8D);
 
             NeatManager nm = new NeatManager(GetPresetGenome(), no, mo);
 
