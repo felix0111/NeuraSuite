@@ -71,14 +71,14 @@ namespace NeuraSuite.NeatExpanded {
                     Value = _sum;
                     break;
                 case ActivationFunction.LATCH:
-                    Value = NNUtility.Latch(LastValue, _sum);
+                    Value = Utility.Latch(LastValue, _sum);
                     break;
                 case ActivationFunction.ABS:
                     Value = Math.Abs(_sum);
                     Value = Math.Max(0f, Value);
                     break;
                 case ActivationFunction.GAUSS:
-                    Value = NNUtility.Gauss(_sum);
+                    Value = Utility.Gauss(_sum);
                     Value = Math.Min(1f, Math.Max(0f, Value));
                     break;
                 case ActivationFunction.MULT:

@@ -7,7 +7,7 @@ using NeuraSuite.NeatExpanded;
 
 namespace NeuraSuite; 
 
-public static class NNUtility {
+public static class Utility {
 
     public static T DeepClone<T>(this T obj) {
         using (var ms = new MemoryStream()) {

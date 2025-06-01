@@ -154,7 +154,7 @@ namespace NeuraSuite.NeatExpanded {
             float adj = fullSpecies < targetSpeciesAmount ? -step : step;
 
             //clamp incase the compatability threshold increases/decreases too much
-            oldOptions.CompatabilityThreshold += NNUtility.Clamp(0.001f, float.MaxValue, adj);
+            oldOptions.CompatabilityThreshold += Utility.Clamp(0.001f, float.MaxValue, adj);
             SpeciationOptions = oldOptions;
         }
 
