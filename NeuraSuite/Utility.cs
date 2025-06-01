@@ -77,12 +77,7 @@ public static class Utility {
         return newArr;
     }
 
-    public static float RandomWeight(Random rnd) {
-        float rndPos = (float) rnd.NextDouble() * 4f;
-        int rndTrue = rnd.Next(0, 2) * 2 - 1;
-
-        return (float) rndTrue * rndPos;
-    }
+    public static double RandomWeight(this Random rnd, double magnitude = 1D) => rnd.NextDouble() * magnitude * rnd.RandomSign();
 
     public static float Clamp(float min, float max, float value) {
         if (value > min && value < max) {

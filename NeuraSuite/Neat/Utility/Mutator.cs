@@ -41,9 +41,9 @@ namespace NeuraSuite.Neat.Utility
                 //10% chance to reset weight, 90% chance to change weight by MaxWeightDelta
                 double newWeight;
                 if (_random.NextDouble() < 0.1D) {
-                    newWeight = _random.RandomSign() * _random.NextDouble();
+                    newWeight = _random.RandomWeight();
                 } else {
-                    newWeight = con.Weight + _random.RandomSign() * _random.NextDouble() * settings.MaxWeightDelta;
+                    newWeight = con.Weight + _random.RandomWeight(settings.MaxWeightDelta);
                 }
                 g.ChangeWeight(con.Innovation, newWeight);
             }

@@ -30,7 +30,7 @@ namespace NeuraSuite.NeatExpanded {
             if (rndChance <= options.AddConnection) {
                 if (network.CheckRecurrent(rndStart, rndEnd)) (rndStart, rndEnd) = (rndEnd, rndStart);  //if recurrent connection, switch neurons
                 if (network.ExistsConnection(rndStart, rndEnd)) return false;
-                network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, Utility.RandomWeight(neat.Random));
+                network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, (float)neat.Random.RandomWeight(4D));
             } else if (rndChance <= options.AddConnection + options.RemoveConnection) {
                 if (network.Connections.Count == 0) return false;
                 network.RemoveConnection(network.RandomConnection(neat.Random).InnovationID);
@@ -54,7 +54,7 @@ namespace NeuraSuite.NeatExpanded {
                     rndStart = network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID;
                     rndEnd = network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID;
                     if (network.CheckRecurrent(rndEnd, rndStart)) {
-                        network.AddConnection(neat.NewInnovation(rndEnd, rndStart), rndEnd, rndStart, Utility.RandomWeight(neat.Random));
+                        network.AddConnection(neat.NewInnovation(rndEnd, rndStart), rndEnd, rndStart, (float)neat.Random.RandomWeight(4D));
                         break;
                     }
                     
