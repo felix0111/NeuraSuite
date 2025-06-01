@@ -49,8 +49,8 @@ namespace NeuraSuite.Neat.Core {
         /// <summary>
         /// Checks if a genome is compatible to the species.
         /// </summary>
-        public bool Compatible(Genome genome, double threshold) {
-            return Distance(genome, Representative, 1D, 1D, 0.4D) < threshold;
+        public bool Compatible(Genome genome, SpeciationSettings settings = default) {
+            return Distance(genome, Representative, settings.ExcessFactor, settings.DisjointFactor, settings.WeightFactor) < settings.GenomeDistanceThreshold;
         }
 
         /// <summary>
