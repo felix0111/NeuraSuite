@@ -39,11 +39,13 @@ namespace NeuraSuite.Neat.Utility
                 var con = g.Connections.Values.ToArray()[_random.Next(g.Connections.Count)];
 
                 //10% chance to reset weight, 90% chance to change weight by MaxWeightDelta
+                double newWeight;
                 if (_random.NextDouble() < 0.1D) {
-                    g.ChangeWeight(con.Innovation, (_random.Next(0, 2) * 2D - 1D) * _random.NextDouble());
+                    newWeight = _random.RandomSign() * _random.NextDouble();
                 } else {
-                    g.ChangeWeight(con.Innovation, con.Weight + (_random.Next(0, 2) * 2D - 1D) * _random.NextDouble() * settings.MaxWeightDelta);
+                    newWeight = con.Weight + _random.RandomSign() * _random.NextDouble() * settings.MaxWeightDelta;
                 }
+                g.ChangeWeight(con.Innovation, newWeight);
             }
         }
     }
