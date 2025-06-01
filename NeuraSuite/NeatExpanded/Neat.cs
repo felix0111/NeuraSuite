@@ -299,8 +299,8 @@ namespace NeuraSuite.NeatExpanded {
             //calculate the sum of the network distribution factors, used for normalizing the distribution factors
             float sum = speciesFitnessPair.Sum(o => (float)Math.Pow(o.Item2, spreadFactor));
 
-            //if all species have a average fitness of 0, return empty list
-            if (sum == 0) return new List<(int, int)>();
+            //if all species have a average fitness of 0, equal distribution
+            if (sum == 0) return speciesFitnessPair.Select(o => (o.Item1, targetNetworkAmount / speciesFitnessPair.Count)).ToList();
 
             //normalize network distribution factor to values 0-1, so we can multiply by targetNetworkAmount
             //normalization formula: fitness^spread / sum(fitness^spread)
