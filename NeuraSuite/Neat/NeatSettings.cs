@@ -1,6 +1,6 @@
 ﻿namespace NeuraSuite.Neat {
 
-    public struct NeatOptions {
+    public struct NeatSettings {
 
         /// <summary>
         /// Defines the targeted number of genomes after repopulation.
@@ -33,7 +33,7 @@
         /// </summary>
         public double GenomeDistanceThreshold;
 
-        public NeatOptions(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int stagnationThreshold, double genomeDistanceThreshold) {
+        public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int stagnationThreshold, double genomeDistanceThreshold) {
             TargetPopulationSize = targetPopulationSize;
             RemoveWorstPercentage = removeWorstPercentage;
             CrossoverChance = crossoverChance;
