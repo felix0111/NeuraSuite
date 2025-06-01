@@ -5,28 +5,28 @@
         /// <summary>
         /// Defines the targeted number of genomes after repopulation.
         /// </summary>
-        public int TargetPopulationSize;
+        public int TargetPopulationSize = 150;
 
         /// <summary>
         /// Defines the amount of low-performing genomes that are removed from each species when repopulating.
         /// </summary>
-        public double RemoveWorstPercentage;
+        public double RemoveWorstPercentage = 0D;
 
         /// <summary>
         /// The probability for crossover to happen when creating new offspring. Otherwise offspring is a direct clone.
         /// </summary>
-        public double CrossoverChance;
+        public double CrossoverChance = 0.75D;
 
         /// <summary>
         /// The probability for a gene to be enabled when at least one parents gene is disabled.
         /// </summary>
-        public double EnableChance;
+        public double EnableChance = 0.25D;
 
         /// <summary>
         /// The amount of generations a species fitness can not improve before it counts as stagnant.
         /// When a species counts as stagnant, it might not produce any offspring. 
         /// </summary>
-        public int StagnationThreshold;
+        public int StagnationThreshold = 100;
 
         public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int stagnationThreshold) {
             TargetPopulationSize = targetPopulationSize;

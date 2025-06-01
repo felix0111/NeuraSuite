@@ -20,7 +20,7 @@ namespace NeuraSuite.Neat {
 
         private Random _random = new ();
 
-        public NeatManager(Genome initialGenome, NeatSettings neatOptions, MutationSettings mutationSettings, SpeciationSettings speciationSettings) {
+        public NeatManager(Genome initialGenome, NeatSettings neatOptions = default, MutationSettings mutationSettings = default, SpeciationSettings speciationSettings = default) {
             //adjusts innovation and node counter to initial genome
             InnovationManager = new InnovationManager(initialGenome);
 
