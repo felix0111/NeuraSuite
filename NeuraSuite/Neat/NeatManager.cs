@@ -10,6 +10,7 @@ namespace NeuraSuite.Neat {
         public InnovationManager InnovationManager;
 
         public MutationSettings MutationSettings;
+        public SpeciationSettings SpeciationSettings;
         public NeatSettings NeatOptions;
 
         public List<Genome> EntirePopulation = new();
@@ -19,13 +20,14 @@ namespace NeuraSuite.Neat {
 
         private Random _random = new ();
 
-        public NeatManager(Genome initialGenome, NeatSettings neatOptions, MutationSettings mutationSettings) {
+        public NeatManager(Genome initialGenome, NeatSettings neatOptions, MutationSettings mutationSettings, SpeciationSettings speciationSettings) {
             //adjusts innovation and node counter to initial genome
             InnovationManager = new InnovationManager(initialGenome);
 
             NeatOptions = neatOptions;
             MutationSettings = mutationSettings;
-
+            SpeciationSettings = speciationSettings;
+            
             //create start population
             for (int i = 0; i < NeatOptions.TargetPopulationSize; i++) EntirePopulation.Add(initialGenome.Clone());
 
@@ -121,7 +123,7 @@ namespace NeuraSuite.Neat {
             //reassign each genome to a species
             foreach (var genome in EntirePopulation) {
                 //find fitting species
-                var species = Species.FirstOrDefault(o => o.Compatible(genome, NeatOptions.GenomeDistanceThreshold), null);
+                var species = Species.FirstOrDefault(o => o.Compatible(genome, SpeciationSettings.GenomeDistanceThreshold), null);
 
                 //if no species found, create new
                 if (species == null) {

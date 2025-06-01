@@ -28,18 +28,12 @@
         /// </summary>
         public int StagnationThreshold;
 
-        /// <summary>
-        /// If the distance of two genomes are smaller than the threshold, they will belong to the same species.
-        /// </summary>
-        public double GenomeDistanceThreshold;
-
-        public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int stagnationThreshold, double genomeDistanceThreshold) {
+        public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int stagnationThreshold) {
             TargetPopulationSize = targetPopulationSize;
             RemoveWorstPercentage = removeWorstPercentage;
             CrossoverChance = crossoverChance;
             EnableChance = enableChance;
             StagnationThreshold = stagnationThreshold;
-            GenomeDistanceThreshold = genomeDistanceThreshold;
         }
     }
 }
