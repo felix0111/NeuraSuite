@@ -65,7 +65,7 @@ namespace NeuraSuite.NeatExpanded {
                 if (network.Connections.Count == 0) return false;
 
                 //weight is adjusted by value between -1f and +1f
-                float rndSign = Utility.RandomSign(neat.Random);
+                float rndSign = neat.Random.RandomSign();
                 Connection rndCon = network.RandomConnection(neat.Random);
                 network.ChangeWeight(rndCon.InnovationID, Utility.Clamp(-4f, 4f, rndCon.Weight + rndSign * (float)neat.Random.NextDouble()));
             } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection + options.AdjustWeight + options.ToggleConnection) {

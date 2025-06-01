@@ -104,7 +104,7 @@ public static class Utility {
         return functionPool.Length == 0 ? default : functionPool[rnd.Next(0, functionPool.Length)];
     }
 
-    public static int RandomSign(Random rnd) {
+    public static int RandomSign(this Random rnd) {
         return rnd.Next(0, 2) * 2 - 1;
     }
 
