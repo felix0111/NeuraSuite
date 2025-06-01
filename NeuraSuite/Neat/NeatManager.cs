@@ -123,7 +123,7 @@ namespace NeuraSuite.Neat {
             //reassign each genome to a species
             foreach (var genome in EntirePopulation) {
                 //find fitting species
-                var species = Species.FirstOrDefault(o => o.Compatible(genome), null);
+                var species = Species.FirstOrDefault(o => o.Compatible(genome, SpeciationSettings), null);
 
                 //if no species found, create new
                 if (species == null) {
