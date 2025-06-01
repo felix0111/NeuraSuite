@@ -26,26 +26,41 @@ namespace NeuraSuite.NeatExpanded {
 
             if (rndStart == rndEnd) goto restart;
             
-            float rndChance = (float)neat.Random.NextDouble();
-            if (rndChance <= options.AddConnection) {
+            //Add connection
+            if (neat.Random.NextDouble() <= options.AddConnection) {
                 if (network.CheckRecurrent(rndStart, rndEnd)) (rndStart, rndEnd) = (rndEnd, rndStart);  //if recurrent connection, switch neurons
                 if (network.ExistsConnection(rndStart, rndEnd)) return false;
                 network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, (float)neat.Random.RandomWeight(4D));
-            } else if (rndChance <= options.AddConnection + options.RemoveConnection) {
+            }
+            
+            //Remove connection
+            if (neat.Random.NextDouble() <= options.RemoveConnection) {
                 if (network.Connections.Count == 0) return false;
                 network.RemoveConnection(network.RandomConnection(neat.Random).InnovationID);
-            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron) {
+            }
+            
+            //Add neuron
+            if (neat.Random.NextDouble() <= options.AddNeuron) {
                 if (network.Connections.Count == 0) return false;
                 Connection con = network.RandomConnectionType(neat.Random, false);
                 Neuron n = network.AddNeuron(neat, con.InnovationID, options.DefaultActivationFunction);
                 if (options.RandomDefaultActivationFunction) n.Function = Utility.RandomActivationFunction(neat.Random, options.HiddenActivationFunctionPool);
-            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron) {
+            }
+            
+            //Remove neuron
+            if (neat.Random.NextDouble() <= options.RemoveNeuron) {
                 if (network.HiddenNeurons.Length == 0) return false;
                 network.RemoveNeuron(network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID);
-            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction) {
+            }
+            
+            //Random function
+            if (neat.Random.NextDouble() <= options.RandomFunction) {
                 if (network.HiddenNeurons.Length == 0) return false;
                 network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].Function = Utility.RandomActivationFunction(neat.Random, options.HiddenActivationFunctionPool);
-            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection) {
+            }
+            
+            //Add recurrent connection
+            if (neat.Random.NextDouble() <= options.AddRecurrentConnection) {
                 if (network.HiddenNeurons.Length == 0) return false;
 
                 //only allows recurrent connections between hidden neurons
@@ -61,14 +76,20 @@ namespace NeuraSuite.NeatExpanded {
                     counter++;
                 } while (counter <= 4);
                 if (counter == 5) return false;
-            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection + options.AdjustWeight) {
+            }
+            
+            //Adjust weight
+            if (neat.Random.NextDouble() <= options.AdjustWeight) {
                 if (network.Connections.Count == 0) return false;
 
                 //weight is adjusted by value between -1f and +1f
                 float rndSign = neat.Random.RandomSign();
                 Connection rndCon = network.RandomConnection(neat.Random);
                 network.ChangeWeight(rndCon.InnovationID, Utility.Clamp(-4f, 4f, rndCon.Weight + rndSign * (float)neat.Random.NextDouble()));
-            } else if (rndChance <= options.AddConnection + options.RemoveConnection + options.AddNeuron + options.RemoveNeuron + options.RandomFunction + options.AddRecurrentConnection + options.AdjustWeight + options.ToggleConnection) {
+            }
+            
+            //Toggle connection
+            if (neat.Random.NextDouble() <= options.ToggleConnection) {
                 if (network.Connections.Count == 0) return false;
                 Connection rndCon = network.RandomConnection(neat.Random);
                 network.ToggleConnection(rndCon.InnovationID, !rndCon.Activated);
