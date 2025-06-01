@@ -46,7 +46,7 @@ namespace TestProject {
                 sum += GetXorError(network, false, true);
                 sum += GetXorError(network, true, false);
                 sum += GetXorError(network, true, true);
-                network.Genome.Fitness = 1D - sum/4D;
+                network.Genome.Fitness = Math.Round(1D - sum/4D, 4);
             }
         }
 
