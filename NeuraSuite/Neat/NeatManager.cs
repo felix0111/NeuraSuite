@@ -9,7 +9,7 @@ namespace NeuraSuite.Neat {
 
         public InnovationManager InnovationManager;
 
-        public MutationOptions MutationOptions;
+        public MutationSettings MutationSettings;
         public NeatSettings NeatOptions;
 
         public List<Genome> EntirePopulation = new();
@@ -19,12 +19,12 @@ namespace NeuraSuite.Neat {
 
         private Random _random = new ();
 
-        public NeatManager(Genome initialGenome, NeatSettings neatOptions, MutationOptions mutationOptions) {
+        public NeatManager(Genome initialGenome, NeatSettings neatOptions, MutationSettings mutationSettings) {
             //adjusts innovation and node counter to initial genome
             InnovationManager = new InnovationManager(initialGenome);
 
             NeatOptions = neatOptions;
-            MutationOptions = mutationOptions;
+            MutationSettings = mutationSettings;
 
             //create start population
             for (int i = 0; i < NeatOptions.TargetPopulationSize; i++) EntirePopulation.Add(initialGenome.Clone());
@@ -102,7 +102,7 @@ namespace NeuraSuite.Neat {
             EntirePopulation = newPop;
 
             //mutate new population
-            foreach (var genome in EntirePopulation) genome.Mutate(InnovationManager, MutationOptions);
+            foreach (var genome in EntirePopulation) genome.Mutate(InnovationManager, MutationSettings);
 
             //add elites unchanged
             EntirePopulation.AddRange(elites);

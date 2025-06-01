@@ -11,9 +11,9 @@ namespace NeuraSuite.Neat.Utility
         /// <summary>
         /// Randomly mutates a genome according to the specified MutationOptions.
         /// </summary>
-        public static void Mutate(this Genome g, InnovationManager im, MutationOptions options) {
+        public static void Mutate(this Genome g, InnovationManager im, MutationSettings settings) {
             //chance to add connection
-            if (_random.NextDouble() <= options.AddConnectionChance) {
+            if (_random.NextDouble() <= settings.AddConnectionChance) {
                 var neurons = g.Nodes.Keys.ToArray();
 
                 var start = neurons[_random.Next(neurons.Length)];
@@ -22,7 +22,7 @@ namespace NeuraSuite.Neat.Utility
             }
 
             //chance to split connection
-            if (_random.NextDouble() <= options.SplitConnectionChance) {
+            if (_random.NextDouble() <= settings.SplitConnectionChance) {
                 if (g.Connections.Count == 0) return;
 
                 var con = g.Connections.Values.ToArray()[_random.Next(g.Connections.Count)];
@@ -33,7 +33,7 @@ namespace NeuraSuite.Neat.Utility
             }
 
             //chance to change weight (or reset to new random value)
-            if (_random.NextDouble() <= options.ChangeWeightChance) {
+            if (_random.NextDouble() <= settings.ChangeWeightChance) {
                 if (g.Connections.Count == 0) return;
 
                 var con = g.Connections.Values.ToArray()[_random.Next(g.Connections.Count)];
@@ -42,17 +42,17 @@ namespace NeuraSuite.Neat.Utility
                 if (_random.NextDouble() < 0.1D) {
                     g.ChangeWeight(con.Innovation, (_random.Next(0, 2) * 2D - 1D) * _random.NextDouble());
                 } else {
-                    g.ChangeWeight(con.Innovation, con.Weight + (_random.Next(0, 2) * 2D - 1D) * _random.NextDouble() * options.MaxWeightDelta);
+                    g.ChangeWeight(con.Innovation, con.Weight + (_random.Next(0, 2) * 2D - 1D) * _random.NextDouble() * settings.MaxWeightDelta);
                 }
             }
         }
     }
 
-    public struct MutationOptions {
+    public struct MutationSettings {
 
         public double AddConnectionChance, SplitConnectionChance, ChangeWeightChance, MaxWeightDelta;
 
-        public MutationOptions(double addConnectionChance, double splitConnectionChance, double changeWeightChance, double maxWeightDelta) {
+        public MutationSettings(double addConnectionChance, double splitConnectionChance, double changeWeightChance, double maxWeightDelta) {
             AddConnectionChance = addConnectionChance;
             SplitConnectionChance = splitConnectionChance;
             ChangeWeightChance = changeWeightChance;
