@@ -212,7 +212,7 @@ namespace NeuraSuite.NeatExpanded {
         /// <exception cref="Exception">Input/Output neurons of networks not matching.</exception>
         public Network CrossoverNetworks(int newNetworkID, Network network1, Network network2) {
             if (network1.InputNeurons.Length != network2.InputNeurons.Length || network1.ActionNeurons.Length != network2.ActionNeurons.Length) throw new Exception("Input and Output neurons are not matching!");
-            
+
             //use fittest as template
             var fittest = network1.Fitness > network2.Fitness ? network1 : network2;
             Network newNetwork = new Network(newNetworkID, fittest);
@@ -284,5 +284,89 @@ namespace NeuraSuite.NeatExpanded {
             return result;
         }
 
+        public List<(int, int)> GetOffspringAmount(int targetPopulationSize) {
+            var offspring = new List<(int, int)>();
+
+            double globalFitnessSum = Species.Values.Sum(o => o.AllNetworks.Values.Sum(n => SpeciationOptions.UseAdjustedFitness ? n.Fitness / o.AllNetworks.Count : n.Fitness));
+
+            foreach (var species in Species.Values) {
+                double localFitnessSum = species.AllNetworks.Values.Sum(o => SpeciationOptions.UseAdjustedFitness ? o.Fitness / species.AllNetworks.Count : o.Fitness);
+
+                int eliteCount = Species.Values.Count(o => o.AllNetworks.Count > 5);
+                int amount = (int)Math.Round(localFitnessSum / globalFitnessSum * (targetPopulationSize - eliteCount));
+
+                offspring.Add((species.SpeciesID, amount));
+            }
+
+            return offspring;
+        }
+
+
+        public void CompleteGeneration(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, MutateOptions options) {
+            var offspring = GetOffspringAmount(targetPopulationSize);
+
+            //create new population
+            var newPop = new List<Network>();
+            var elites = new List<Network>();
+            foreach (var species in Species.Values.Where(o => o.AllNetworks.Count != 0)) {
+                //check if species is stagnant
+                //if (species.IsStagnant(NeatOptions.StagnationThreshold)) continue;
+
+                //remove worst
+                int worstAmount = (int)Math.Round(species.AllNetworks.Values.Count * removeWorstPercentage);
+                var worst = species.AllNetworks.Values.OrderBy(o => o.Fitness).Take(worstAmount);
+                foreach (var network in worst) species.RemoveFromSpecies(network);
+
+                //select new representative by selecting a random member excluding worst members
+                //must be called before speciation
+                species.Representative = new Network(-1, species.AllNetworks.Values.ToArray()[Random.Next(species.AllNetworks.Count)]);
+
+                //copy elite but let it remain in the species for now for creating offspring
+                if (species.AllNetworks.Count > 5) {
+                    var elite = species.AllNetworks.Values.MaxBy(o => o.Fitness);
+                    elites.Add(new Network(elites.Count + newPop.Count, elite));
+                }
+
+                //create offspring from remaining networks in species
+                int offspringAmount = offspring.First(o => o.Item1 == species.SpeciesID).Item2;
+                for (int i = 0; i < offspringAmount; i++) {
+                    //either crossover or clone randomly by chance
+                    if (Random.NextDouble() <= crossoverChance) {
+                        var firstGenome = species.RandomByFitness(Random);
+                        var secondGenome = species.RandomByFitness(Random);
+                        var newGenome = CrossoverNetworks(elites.Count + newPop.Count, firstGenome, secondGenome);
+                        newPop.Add(newGenome);
+                    } else {
+                        newPop.Add(new Network(elites.Count + newPop.Count, species.RandomByFitness(Random)));
+                    }
+                }
+
+                species.AllNetworks.Clear();
+            }
+
+            //fill population placeholder with random networks from the previous generation
+            if (newPop.Count == 0 && elites.Count == 0) {
+                for (int i = 0; i < targetPopulationSize; i++) {
+                    newPop.Add(new Network(i, NetworkCollection.Values.ToArray()[Random.Next(NetworkCollection.Count)]));
+                }
+            }
+
+            //clear old population
+            NetworkCollection.Clear();
+
+            //create new population
+            foreach (var network in newPop) NetworkCollection.Add(network.NetworkID, network);
+
+            //mutate new population
+            foreach (var network in NetworkCollection.Values) network.Mutate(this, options);
+
+            //add elites unchanged
+            foreach (var network in elites) {
+                NetworkCollection.Add(network.NetworkID, network);
+            }
+
+            //speciate population
+            SpeciateAll();
+        }
     }
 }
