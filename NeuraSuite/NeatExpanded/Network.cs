@@ -30,12 +30,6 @@ namespace NeuraSuite.NeatExpanded {
         public float[] OutputValues;
 
         /// <summary>
-        /// When creating neurons, this will be used to determine their new ID.
-        /// </summary>
-        //TODO might be inefficient with very big amount of neurons
-        public int GetFreeNeuronID => Neurons.Keys.Max() + 1;
-
-        /// <summary>
         /// Used to differentiate between multiple networks.
         /// </summary>
         public readonly int NetworkID;
@@ -175,7 +169,7 @@ namespace NeuraSuite.NeatExpanded {
             if (!Connections.ContainsKey(innovID)) throw new Exception($"Connection with ID {innovID} does not exist!");
 
             Connection con = Connections[innovID];
-            Neuron newNeuron = new Neuron(GetFreeNeuronID, function, NeuronType.Hidden);
+            Neuron newNeuron = new Neuron(neat.GetNeuronId, function, NeuronType.Hidden);
             Neurons.Add(newNeuron.ID, newNeuron);
 
             RecalculateNeuronArrays();

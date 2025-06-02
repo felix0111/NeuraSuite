@@ -10,7 +10,7 @@ namespace NeuraSuite.NeatExpanded {
     public class Neat {
 
         public Random Random;
-
+        
         public Dictionary<int, Network> NetworkCollection = new Dictionary<int, Network>();
         public Dictionary<int, Species> Species = new Dictionary<int, Species>();
 
@@ -31,6 +31,9 @@ namespace NeuraSuite.NeatExpanded {
         public SpeciationOptions SpeciationOptions;
         private int _speciesCounter;
 
+        public int GetNeuronId => _neuronIdCounter++;
+        private int _neuronIdCounter;
+
         /// <summary>
         /// The <see cref="InputTemplate"/> and <see cref="ActionTemplate"/> is used for all networks created in this population.
         /// </summary>
@@ -41,6 +44,8 @@ namespace NeuraSuite.NeatExpanded {
             ActionTemplate = actionTemplate;
             
             SpeciationOptions = speciationOptions;
+
+            _neuronIdCounter = Math.Max(inputTemplate.Max(o => o.ID), actionTemplate.Max(o => o.ID)) + 1;
         }
 
         /// <summary>
