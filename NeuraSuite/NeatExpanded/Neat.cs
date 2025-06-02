@@ -213,53 +213,23 @@ namespace NeuraSuite.NeatExpanded {
         public Network CrossoverNetworks(int newNetworkID, Network network1, Network network2) {
             if (network1.InputNeurons.Length != network2.InputNeurons.Length || network1.ActionNeurons.Length != network2.ActionNeurons.Length) throw new Exception("Input and Output neurons are not matching!");
             
-            Network newNetwork = new Network(newNetworkID, InputTemplate, ActionTemplate);
+            //use fittest as template
+            var fittest = network1.Fitness > network2.Fitness ? network1 : network2;
+            Network newNetwork = new Network(newNetworkID, fittest);
 
-            //needed so that temporary unconnected neurons dont get removed
-            newNetwork.AllowUselessHidden = true;
-
-            //take all neurons to the new network
-            foreach (var neuron in network1.HiddenNeurons) {
-                newNetwork.AddNeuronUnsafe(neuron);
-            }
-
-            foreach (var neuron in network2.HiddenNeurons) {
-                //if neuron already exists, 50/50 chance to replace
-                if (newNetwork.AddNeuronUnsafe(neuron) == null && Random.NextDouble() <= 0.5d) {
-                    newNetwork.RemoveNeuron(neuron.ID);
-                    newNetwork.AddNeuronUnsafe(neuron);
-                } 
-            }
-
-            //go through all connections, matching are randomly chosen, disjoint from fittest network
-            //TODO also crossover recurrent connections
+            //matching are randomly chosen from either parent
             var differences = NEATUtility.GetMatchingAndDisjoint(network1, network2);
             foreach (var matchingInnov in differences.Item1) {
-                Connection c1 = network1.Connections[matchingInnov];
-                Connection c2 = network2.Connections[matchingInnov];
-                newNetwork.AddConnection(matchingInnov, c1.SourceID, c1.TargetID, 0f);
+                var rndNetwork = Random.NextDouble() < 0.5D ? network1 : network2;
+                Connection c = rndNetwork.Connections.TryGetValue(matchingInnov, out Connection con) ? con : rndNetwork.RecurrentConnections[matchingInnov];
+
+                //check if normal or recurrent
                 if (newNetwork.Connections.ContainsKey(matchingInnov)) {
-                    newNetwork.Connections[matchingInnov] = Random.NextDouble() <= 0.5d ? c1 : c2;
+                    newNetwork.Connections[matchingInnov] = c;
                 } else {
-                    newNetwork.RecurrentConnections[matchingInnov] = Random.NextDouble() <= 0.5d ? c1 : c2;
+                    newNetwork.RecurrentConnections[matchingInnov] = c;
                 }
             }
-
-            Network fittest = network1.Fitness > network2.Fitness ? network1 : network2;
-            foreach (var disjointInnov in differences.Item2) {
-                //if disjoint not from fittest, skip
-                if(!fittest.ExistsConnection(disjointInnov)) continue;
-
-                newNetwork.AddConnection(disjointInnov, fittest.GetConnection(disjointInnov).SourceID, fittest.GetConnection(disjointInnov).TargetID, 0f);
-                if (newNetwork.Connections.ContainsKey(disjointInnov)) {
-                    newNetwork.Connections[disjointInnov] = fittest.GetConnection(disjointInnov);
-                } else {
-                    newNetwork.RecurrentConnections[disjointInnov] = fittest.GetConnection(disjointInnov);
-                }
-            }
-
-            //this also calls RecalculateStructure(bool)
-            newNetwork.AllowUselessHidden = false;
 
             return newNetwork;
         }
