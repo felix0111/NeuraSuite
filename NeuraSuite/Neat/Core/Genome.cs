@@ -18,10 +18,10 @@ namespace NeuraSuite.Neat.Core {
             }
         }
 
-        public bool AddConnection(int innovation, int startId, int endId) {
+        public bool AddConnection(int innovation, int startId, int endId, double weight = 1D, bool enabled = true) {
             //dont allow connections to input neurons
             if (Nodes[endId].Type == NodeType.Input) return false;
-            return Connections.TryAdd(innovation, new ConnectionGene(innovation, startId, endId));
+            return Connections.TryAdd(innovation, new ConnectionGene(innovation, startId, endId, weight, enabled));
         }
 
         public bool ChangeWeight(int innovation, double weight) {

@@ -18,7 +18,7 @@ namespace NeuraSuite.Neat.Utility
 
                 var start = neurons[_random.Next(neurons.Length)];
                 var end = neurons[_random.Next(neurons.Length)];
-                g.AddConnection(im.GetInnovation(start, end), start, end);
+                g.AddConnection(im.GetInnovation(start, end), start, end, _random.RandomWeight());
             }
 
             //chance to split connection
