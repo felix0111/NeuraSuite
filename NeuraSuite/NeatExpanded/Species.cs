@@ -113,6 +113,25 @@ namespace NeuraSuite.NeatExpanded {
 
             return newArr;
         }
+
+        /// <summary>
+        /// Gets a random member. Networks with higher fitness have a higher chance.
+        /// </summary>
+        public Network RandomByFitness(Random r) {
+            if (AllNetworks.Count == 0) return null;
+
+            var fitnessSum = AllNetworks.Values.Sum(o => o.Fitness);
+            var normalizedFitnesses = AllNetworks.Values.Select(o => (o, o.Fitness / fitnessSum)).OrderBy(o => o.Item2).ToList();
+
+            double rnd = r.NextDouble();
+            double probabilitySum = 0D;
+            foreach (var genome in normalizedFitnesses) {
+                probabilitySum += genome.Item2;
+                if (rnd <= probabilitySum) return genome.o;
+            }
+
+            throw new Exception("Should not happen!");
+        }
     }
 
     /// <summary>
