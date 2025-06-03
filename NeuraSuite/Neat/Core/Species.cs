@@ -8,6 +8,11 @@ namespace NeuraSuite.Neat.Core {
         public Genome Representative;
         public List<Genome> Members = new();
 
+        /// <summary>
+        /// Returns the average fitness of all members. This is also equal to the sum of each members adjusted fitness.
+        /// </summary>
+        public double AverageFitness => Members.Sum(o => o.Fitness) / Members.Count;
+
         private double _bestFitness = 0D;
         private int _generationCounter = 0;
 
@@ -126,5 +131,10 @@ namespace NeuraSuite.Neat.Core {
 
             return new Tuple<int[], int[], int[]>(matching.ToArray(), disjoint.ToArray(), excess.ToArray());
         }
+
+        /// <summary>
+        /// Returns the adjusted fitness of a member.
+        /// </summary>
+        public double AdjustedFitness(Genome member) => member.Fitness / Members.Count;
     }
 }
