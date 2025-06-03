@@ -159,7 +159,7 @@ namespace NeuraSuite.Neat {
             var speciesOffspring = new List<Tuple<Species, int>>();
 
             //calculate the average fitness of all species
-            var averageFitnesses = Species.ToDictionary(species => species, species => species.AverageFitness);
+            var averageFitnesses = Species.Where(o => o.Members.Count > 0).ToDictionary(species => species, species => species.AverageFitness);
 
             //sums the average fitness of all species in the population
             double averageFitnessSum = averageFitnesses.Values.Sum();
