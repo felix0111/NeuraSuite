@@ -20,6 +20,9 @@ namespace NeuraSuite.Neat {
 
         private Random _random = new ();
 
+        private int _stagnationCounter;
+        private double _bestFitness;
+
         public NeatManager(Genome initialGenome, NeatSettings neatOptions = default, MutationSettings mutationSettings = default, SpeciationSettings speciationSettings = default) {
             //adjusts innovation and node counter to initial genome
             InnovationManager = new InnovationManager(initialGenome);
@@ -55,13 +58,23 @@ namespace NeuraSuite.Neat {
         public void CompleteGeneration() {
             _phenotypes.Clear();
 
-            //get offspring amount for each species
+            //checks if the fitness of the whole population improved
+            double bestFitness = EntirePopulation.Max(o => o.Fitness);
+            if (bestFitness <= _bestFitness) {
+                _stagnationCounter++;
+            } else {
+                _stagnationCounter = 0;
+                _bestFitness = bestFitness;
+            }
+
+            //create offspring amount
             var offspring = GetOffspringAmount();
 
             //create new population
             var newPop = new List<Genome>();
             var elites = new List<Genome>();
-            foreach (var species in Species.Where(o => o.Members.Count != 0)) {
+            foreach (var (species, offspringAmount) in offspring) {
+
                 //check if species is stagnant
                 if (species.IsStagnant(NeatOptions.StagnationThreshold)) continue;
 
@@ -79,7 +92,6 @@ namespace NeuraSuite.Neat {
                 }
 
                 //create offspring from remaining genomes in species
-                int offspringAmount = offspring.First(o => o.Item1 == species).Item2;
                 for (int i = 0; i < offspringAmount; i++) {
                     //either crossover or clone randomly by chance
                     if (_random.NextDouble() <= NeatOptions.CrossoverChance) {
@@ -146,15 +158,24 @@ namespace NeuraSuite.Neat {
         private List<Tuple<Species, int>> GetOffspringAmount() {
             var speciesOffspring = new List<Tuple<Species, int>>();
 
-            double globalAdjustedFitnessSum = Species.Sum(s => s.Members.Sum(m => m.Fitness / s.Members.Count));
+            //calculate the average fitness of all species
+            var averageFitnesses = Species.ToDictionary(species => species, species => species.AverageFitness);
 
-            foreach (Species species in Species.Where(o => o.Members.Count != 0)) {
-                double localAdjustedFitnessSum = species.Members.Sum(o => o.Fitness / species.Members.Count);
+            //sums the average fitness of all species in the population
+            double averageFitnessSum = averageFitnesses.Values.Sum();
+
+            //if the whole population is not improving, only take top 2 species
+            if (_stagnationCounter > 20) averageFitnesses = averageFitnesses.OrderByDescending(o => o.Value).Take(2).ToDictionary();
+
+            //calculate amount of offspring from average fitness
+            foreach (var pair in averageFitnesses) {
+                //calculates the share of offspring this species will get
+                double populationShare = pair.Value / averageFitnessSum;
 
                 int eliteCount = Species.Count(o => o.Members.Count > 5);
-                int amount = (int)Math.Round(localAdjustedFitnessSum / globalAdjustedFitnessSum * (NeatOptions.TargetPopulationSize - eliteCount));
+                int amount = (int)Math.Round(populationShare * (NeatOptions.TargetPopulationSize - eliteCount));
                 
-                speciesOffspring.Add(new (species, amount));
+                speciesOffspring.Add(new (pair.Key, amount));
             }
 
             return speciesOffspring;
