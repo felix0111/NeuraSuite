@@ -67,24 +67,23 @@ namespace NeuraSuite.Neat {
                 _bestFitness = bestFitness;
             }
 
-            //create offspring amount
+            //create offspring amount, should be called before removing worst members
             var offspring = GetOffspringAmount();
 
-            //create new population
-            var newPop = new List<Genome>();
-            var elites = new List<Genome>();
-            foreach (var (species, offspringAmount) in offspring) {
-
-                //check if species is stagnant
-                if (species.IsStagnant(NeatOptions.StagnationThreshold)) continue;
-
+            //pre process all species
+            foreach (var species in Species.Where(o => o.Members.Count != 0)) {
                 //remove worst
                 species.RemoveWorstMembers(NeatOptions.RemoveWorstPercentage);
 
                 //select new representative by selecting a random member excluding worst members
                 //must be called before speciation
-                species.Representative = species.Members[_random.Next(species.Members.Count)];
+                species.Representative = EntirePopulation.MinBy(o => Core.Species.Distance(species.Representative, o, SpeciationSettings.ExcessFactor, SpeciationSettings.DisjointFactor, SpeciationSettings.WeightFactor));
+            }
 
+            //create new population
+            var newPop = new List<Genome>();
+            var elites = new List<Genome>();
+            foreach (var (species, offspringAmount) in offspring) {
                 //copy elite but let it remain in the species for now for creating offspring
                 if (species.Members.Count > 5) {
                     var elite = species.Members.MaxBy(o => o.Fitness);
@@ -94,31 +93,37 @@ namespace NeuraSuite.Neat {
                 //create offspring from remaining genomes in species
                 for (int i = 0; i < offspringAmount; i++) {
                     //either crossover or clone randomly by chance
+                    Genome newGenome;
                     if (_random.NextDouble() <= NeatOptions.CrossoverChance) {
                         var firstGenome = species.RandomByFitness(_random);
                         var secondGenome = species.RandomByFitness(_random);
-                        var newGenome = Crossover(firstGenome, secondGenome, _random);
-                        newPop.Add(newGenome);
+                        newGenome = Crossover(firstGenome, secondGenome, _random);
                     } else {
-                        newPop.Add(species.RandomByFitness(_random).Clone());
+                        newGenome = species.RandomByFitness(_random).Clone();
                     }
+
+                    newGenome.Mutate(InnovationManager, MutationSettings);
+                    newPop.Add(newGenome);
                 }
             }
 
-            //fill population with random genomes from the previous generation
-            if (newPop.Count == 0 && elites.Count == 0) {
+            //if extinction because all species are stagnant
+            if (newPop.Count == 0) {
+                //get elite of entire (previous) population
+                var elite = EntirePopulation.MaxBy(o => o.Fitness);
+
+                //fill population with mutated variants of elite
                 for (int i = 0; i < NeatOptions.TargetPopulationSize; i++) {
-                    newPop.Add(EntirePopulation[_random.Next(EntirePopulation.Count)]);
+                    var rndElite = elite.Clone();
+                    rndElite.Mutate(InnovationManager, MutationSettings);
+                    newPop.Add(rndElite);
                 }
             }
 
             //replace old population
             EntirePopulation = newPop;
 
-            //mutate new population
-            foreach (var genome in EntirePopulation) genome.Mutate(InnovationManager, MutationSettings);
-
-            //add elites unchanged
+            //add elites
             EntirePopulation.AddRange(elites);
 
             //speciate population
@@ -159,13 +164,13 @@ namespace NeuraSuite.Neat {
             var speciesOffspring = new List<Tuple<Species, int>>();
 
             //calculate the average fitness of all species
-            var averageFitnesses = Species.Where(o => o.Members.Count > 0).ToDictionary(species => species, species => species.AverageFitness);
-
-            //sums the average fitness of all species in the population
-            double averageFitnessSum = averageFitnesses.Values.Sum();
+            var averageFitnesses = Species.Where(o => o.Members.Count > 0 && !o.IsStagnant(NeatOptions.StagnationThreshold)).ToDictionary(species => species, species => species.AverageFitness);
 
             //if the whole population is not improving, only take top 2 species
             if (_stagnationCounter > 20) averageFitnesses = averageFitnesses.OrderByDescending(o => o.Value).Take(2).ToDictionary();
+
+            //sums the average fitness of all species that produce offspring
+            double averageFitnessSum = averageFitnesses.Values.Sum();
 
             //calculate amount of offspring from average fitness
             foreach (var pair in averageFitnesses) {
