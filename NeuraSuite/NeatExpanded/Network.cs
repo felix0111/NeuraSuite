@@ -429,8 +429,11 @@ namespace NeuraSuite.NeatExpanded {
             foreach (Neuron hiddenNeuron in HiddenNeurons) {
                 hiddenNeuron.ResetState();
                 foreach (int connection in hiddenNeuron.IncommingConnections) {
+                    if (!Connections[connection].Activated) continue;
                     Neuron src = Neurons[Connections[connection].SourceID];
-                    hiddenNeuron.Input(Connections[connection].Weight * src.Value);
+
+                    //if connection to self then use last value because neuron is already reset
+                    hiddenNeuron.Input(Connections[connection].Weight * (src == hiddenNeuron ? src.LastValue : src.Value));
                 }
                 hiddenNeuron.Activate();
             }
@@ -441,6 +444,7 @@ namespace NeuraSuite.NeatExpanded {
             for (int i = 0; i < ActionNeurons.Length; i++) {
                 ActionNeurons[i].ResetState();
                 foreach (int connection in ActionNeurons[i].IncommingConnections) {
+                    if (!Connections[connection].Activated) continue;
                     Neuron src = Neurons[Connections[connection].SourceID];
                     ActionNeurons[i].Input(Connections[connection].Weight * src.Value);
                 }
