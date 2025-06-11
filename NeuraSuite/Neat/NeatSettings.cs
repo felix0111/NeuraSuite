@@ -28,12 +28,19 @@
         /// </summary>
         public int SpeciesStagnationThreshold = 100;
 
-        public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int speciesStagnationThreshold) {
+        /// <summary>
+        /// The amount of generations the whole population fitness can not improve before it counts as stagnant.
+        /// When the population counts as stagnant, only the first 2 species will survive and reproduce.
+        /// </summary>
+        public int PopulationStagnationThreshold = 100;
+
+        public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int speciesStagnationThreshold, int populationStagnationThreshold) {
             TargetPopulationSize = targetPopulationSize;
             RemoveWorstPercentage = removeWorstPercentage;
             CrossoverChance = crossoverChance;
             EnableChance = enableChance;
             SpeciesStagnationThreshold = speciesStagnationThreshold;
+            PopulationStagnationThreshold = populationStagnationThreshold;
         }
     }
 }
