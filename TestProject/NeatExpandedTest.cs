@@ -5,17 +5,15 @@ namespace TestProject
 {
     public class NeatExpandedTest {
         private static readonly int NetworkCount = 200;
-        private static readonly float MutationChance = 0.5f;
-        private static readonly int MutationCount = 4;
         private static readonly int MaxGenerations = 10000;
 
         //includes all activation functions as mutation possibility
         private static readonly ActivationFunction[] ActivationFunctionPool = (ActivationFunction[])Enum.GetValues(typeof(ActivationFunction));
 
         //DefaultActivationFunction is not specified because we use RandomDefaultActivationFunction
-        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.07f, 0.65f, 0.05f, 0.03f, 0.03f, 0.05f, 0.02f, default, ActivationFunctionPool, true);
+        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.07f, 0.7f, 0.01f, 0.03f, 0.03f, 0.05f, default, ActivationFunctionPool, true);
 
-        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 0.6f, 20, false);
+        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 1f, 20, true);
 
         public static void RunTest() {
 
@@ -34,9 +32,6 @@ namespace TestProject
             //speciate all networks, this should put all networks in the same species
             neat.SpeciateAll();
 
-            //needed because else neat.CreatePopulation would return an empty list in the first iteration (fitness of every network is 0)
-            neat.NetworkCollection[1].Fitness = 1f;
-
             //using stopwatch to see performance of algorithm
             Stopwatch run = new Stopwatch();
             run.Start();
@@ -44,56 +39,21 @@ namespace TestProject
             int currentGeneration = 1;
             Network bestNetwork;
             do {
-                if (currentGeneration >= MaxGenerations) break;
-
-                //create a new population, basically tells how many network each species will get
-                var newPop = neat.CreatePopulation(NetworkCount, 1);
-
-                //TODO might have to check if newPop is not empty
-
-                //take the best network of each species
-                Dictionary<int, Network> bestOfSpecies = new Dictionary<int, Network>(newPop.Count);
-                foreach (var specie in newPop) {
-                    bestOfSpecies.Add(specie.Item1, neat.Species[specie.Item1].AllNetworks.Values.OrderByDescending(o => o.Fitness).First());
-                }
-
-                //remove all old networks
-                neat.RemoveAllNetworks();
-
-                //create the new population based of newPop, species.Item1 => speciesID; species.Item2 => network amount
-                foreach (var species in newPop) {
-                    for (int i = 0; i < species.Item2; i++) {
-                        var network = neat.AddNetwork(neat.NetworkCollection.Count, bestOfSpecies[species.Item1]);
-
-                        //mutate network randomly
-                        if (neat.Random.NextDouble() <= MutationChance) {
-                            int rndCount = neat.Random.Next(1, MutationCount + 1);
-                            for (int j = 0; j < rndCount; j++) neat.NetworkCollection[network.NetworkID].Mutate(neat, MOptions);
-                        }
-                    }
-                }
-
-
-                //neat.AdjustCompatabilityFactor(0.01f, 60);
-
-                //speciate every network because mutation might throw a network out of its species
-                neat.SpeciateAll();
-                neat.RemoveEmptySpecies();
-
-
                 TestXOR(neat);
 
+                neat.CompleteGeneration(NetworkCount, 0D, 0.75D, MOptions);
+                neat.RemoveEmptySpecies();
 
                 //show some data
                 bestNetwork = neat.NetworkCollection.MaxBy(o => o.Value.Fitness).Value;
                 Console.Write("\rCurrent generation: {0:D3} Species amount: {1:D3} Comp.threshold: {2:F2} Best accuracy: {3:F1}% accuracy", currentGeneration, neat.Species.Count, neat.SpeciationOptions.CompatabilityThreshold, bestNetwork.Fitness * 100f);
                 currentGeneration++;
 
-            } while (bestNetwork.Fitness <= 0.99f);
+            } while (bestNetwork.Fitness <= 0.99f && currentGeneration < MaxGenerations);
 
             //show performance of population, overall performance might be affected by Console.Write(...) in while loop
             run.Stop();
-            Console.WriteLine("\nTotal amount of generations: {0} Time elapsed: {1}s", currentGeneration, run.ElapsedMilliseconds / 1000f);
+            Console.WriteLine("\nTotal amount of generations: {0} Time elapsed: {1}s Generations Per Second: {2}", currentGeneration, run.ElapsedMilliseconds / 1000f, currentGeneration / (run.ElapsedMilliseconds / 1000f));
             run.Reset();
 
             Console.WriteLine("Enter 'exit' to stop test.");

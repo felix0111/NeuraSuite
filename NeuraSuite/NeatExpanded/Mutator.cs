@@ -28,8 +28,6 @@ namespace NeuraSuite.NeatExpanded {
             
             //Add connection
             if (neat.Random.NextDouble() <= options.AddConnection) {
-                if (network.CheckRecurrent(rndStart, rndEnd)) (rndStart, rndEnd) = (rndEnd, rndStart);  //if recurrent connection, switch neurons
-
                 if (!network.ExistsConnection(rndStart, rndEnd)) {
                     network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, (float)neat.Random.RandomWeight(4D));
                 }
@@ -56,22 +54,6 @@ namespace NeuraSuite.NeatExpanded {
             if (neat.Random.NextDouble() <= options.RandomFunction && network.HiddenNeurons.Length != 0) {
                 network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].Function = Utility.RandomActivationFunction(neat.Random, options.HiddenActivationFunctionPool);
             }
-            
-            //Add recurrent connection
-            if (neat.Random.NextDouble() <= options.AddRecurrentConnection && network.HiddenNeurons.Length != 0) {
-                //only allows recurrent connections between hidden neurons
-                int counter = 0;
-                do {
-                    rndStart = network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID;
-                    rndEnd = network.HiddenNeurons[neat.Random.Next(0, network.HiddenNeurons.Length)].ID;
-                    if (network.CheckRecurrent(rndEnd, rndStart)) {
-                        network.AddConnection(neat.NewInnovation(rndEnd, rndStart), rndEnd, rndStart, (float)neat.Random.RandomWeight(4D));
-                        break;
-                    }
-                    
-                    counter++;
-                } while (counter <= 4);
-            }
 
             //mutation of each weight
             foreach (var connection in network.Connections.Values) {
@@ -96,7 +78,7 @@ namespace NeuraSuite.NeatExpanded {
     //must be a value between 0 and 1
     public struct MutateOptions {
 
-        public float AddConnection, RemoveConnection, AdjustWeight, AddRecurrentConnection, ToggleConnection;
+        public float AddConnection, RemoveConnection, AdjustWeight, ToggleConnection;
         public float AddNeuron, RemoveNeuron, RandomFunction;
         
         /// <summary>
@@ -113,7 +95,7 @@ namespace NeuraSuite.NeatExpanded {
         public ActivationFunction DefaultActivationFunction;
         public bool RandomDefaultActivationFunction;
 
-        public MutateOptions(float addConnection, float removeConnection, float adjustWeight, float toggleConnection, float addNeuron, float removeNeuron, float randomFunction, float addRecurrentConnection, ActivationFunction defaultActivationFunction, ActivationFunction[] hiddenActivationFunctionPool, bool randomDefaultActivationFunction) {
+        public MutateOptions(float addConnection, float removeConnection, float adjustWeight, float toggleConnection, float addNeuron, float removeNeuron, float randomFunction, ActivationFunction defaultActivationFunction, ActivationFunction[] hiddenActivationFunctionPool, bool randomDefaultActivationFunction) {
             AddConnection = addConnection;
             RemoveConnection = removeConnection;
             AdjustWeight = adjustWeight;
@@ -121,7 +103,6 @@ namespace NeuraSuite.NeatExpanded {
             AddNeuron = addNeuron;
             RemoveNeuron = removeNeuron;
             RandomFunction = randomFunction;
-            AddRecurrentConnection = addRecurrentConnection;
             DefaultActivationFunction = defaultActivationFunction;
 
             HiddenActivationFunctionPool = hiddenActivationFunctionPool;
