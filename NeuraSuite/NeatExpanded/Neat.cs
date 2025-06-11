@@ -236,6 +236,19 @@ namespace NeuraSuite.NeatExpanded {
                 }
             }
 
+            //determine enabled status
+            foreach (var connection in newNetwork.Connections.Values) {
+                bool parent1Disabled = network1.Connections.TryGetValue(connection.InnovationID, out var parent1) && !parent1.Activated;
+                bool parent2Disabled = network2.Connections.TryGetValue(connection.InnovationID, out var parent2) && !parent2.Activated;
+
+                //if one of the parent gene is disabled, determine status by chance
+                if (parent1Disabled || parent2Disabled) {
+                    var newConnection = connection;
+                    newConnection.Activated = Random.NextDouble() <= 0.25D;
+                    newNetwork.Connections[connection.InnovationID] = newConnection;
+                }
+            }
+
             return newNetwork;
         }
 
