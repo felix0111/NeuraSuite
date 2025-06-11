@@ -14,38 +14,46 @@ namespace NeuraSuite.Neat.Utility
         public static void Mutate(this Genome g, InnovationManager im, MutationSettings settings) {
             //chance to add connection
             if (_random.NextDouble() <= settings.AddConnectionChance) {
-                var neurons = g.Nodes.Keys.ToArray();
+                var validStartNodes = g.Nodes.Values.Where(o => o.Type != NodeType.Output).ToArray();
+                var validEndNodes = g.Nodes.Values.Where(o => o.Type != NodeType.Input).ToArray();
 
-                var start = neurons[_random.Next(neurons.Length)];
-                var end = neurons[_random.Next(neurons.Length)];
-                g.AddConnection(im.GetInnovation(start, end), start, end, _random.RandomWeight());
+                //retry 4 times at max
+                for (int i = 0; i < 4; i++) {
+                    var start = validStartNodes[_random.Next(validStartNodes.Length)];
+                    var end = validEndNodes[_random.Next(validEndNodes.Length)];
+
+                    //if the add connection did not fail, break out of loop
+                    if (g.AddConnection(im.GetInnovation(start.Id, end.Id), start.Id, end.Id, _random.RandomWeight())) break;
+                }
             }
 
             //chance to split connection
-            if (_random.NextDouble() <= settings.SplitConnectionChance) {
-                if (g.Connections.Count == 0) return;
+            if (_random.NextDouble() <= settings.SplitConnectionChance && g.Connections.Count > 0) {
+                //only enabled connections
+                var validConnections = g.Connections.Values.Where(o => o.Enabled).ToArray();
+                
+                //mutation not possible if no enabled connections
+                if (validConnections.Length > 0) {
+                    var con = validConnections[_random.Next(validConnections.Length)];
+                    int newNodeId = im.NewNodeId;
 
-                var con = g.Connections.Values.ToArray()[_random.Next(g.Connections.Count)];
-                if (!con.Enabled) return;
-
-                int newNodeId = im.NewNodeId;
-                g.SplitConnection(con.Innovation, newNodeId, im.GetInnovation(con.StartId, newNodeId), im.GetInnovation(newNodeId, con.EndId));
+                    g.SplitConnection(con.Innovation, newNodeId, im.GetInnovation(con.StartId, newNodeId), im.GetInnovation(newNodeId, con.EndId));
+                }
             }
 
-            //chance to change weight (or reset to new random value)
-            if (_random.NextDouble() <= settings.ChangeWeightChance) {
-                if (g.Connections.Count == 0) return;
-
-                var con = g.Connections.Values.ToArray()[_random.Next(g.Connections.Count)];
+            //every gene has a chance to change weight
+            foreach (var connection in g.Connections.ToList()) {
+                if(_random.NextDouble() > settings.ChangeWeightChance) continue;
 
                 //10% chance to reset weight, 90% chance to change weight by MaxWeightDelta
                 double newWeight;
                 if (_random.NextDouble() < 0.1D) {
                     newWeight = _random.RandomWeight();
                 } else {
-                    newWeight = con.Weight + _random.RandomWeight(settings.MaxWeightDelta);
+                    newWeight = connection.Value.Weight + _random.RandomWeight(settings.MaxWeightDelta);
                 }
-                g.ChangeWeight(con.Innovation, newWeight);
+
+                g.ChangeWeight(connection.Value.Innovation, newWeight);
             }
         }
     }
