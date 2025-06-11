@@ -73,18 +73,18 @@ namespace NeuraSuite.NeatExpanded {
                 } while (counter <= 4);
             }
 
-            //Adjust weight
-            if (neat.Random.NextDouble() <= options.AdjustWeight && network.Connections.Count != 0) {
-                //weight is adjusted by value between -1f and +1f
-                float rndSign = neat.Random.RandomSign();
-                Connection rndCon = network.RandomConnection(neat.Random);
-                network.ChangeWeight(rndCon.InnovationID, Utility.Clamp(-4f, 4f, rndCon.Weight + rndSign * (float)neat.Random.NextDouble()));
-            }
-            
-            //Toggle connection
-            if (neat.Random.NextDouble() <= options.ToggleConnection && network.Connections.Count != 0) {
-                Connection rndCon = network.RandomConnection(neat.Random);
-                network.ToggleConnection(rndCon.InnovationID, !rndCon.Activated);
+            //mutation of each weight
+            foreach (var connection in network.Connections.Values) {
+                //Adjust weight
+                if (neat.Random.NextDouble() <= options.AdjustWeight && network.Connections.Count != 0) {
+                    //weight is adjusted by value between -1f and +1f with the resulting weight clamped between -4f and 4f
+                    network.ChangeWeight(connection.InnovationID, Utility.Clamp(-4f, 4f, connection.Weight + (float)neat.Random.RandomWeight(0.5)));
+                }
+
+                //Toggle connection
+                if (neat.Random.NextDouble() <= options.ToggleConnection && network.Connections.Count != 0) {
+                    network.ToggleConnection(connection.InnovationID, !connection.Activated);
+                }
             }
 
             network.RecalculateStructure(!network.AllowUselessHidden);
@@ -93,7 +93,7 @@ namespace NeuraSuite.NeatExpanded {
     }
 
     //defines chances for different mutations
-    //must be in percent and add up to 1
+    //must be a value between 0 and 1
     public struct MutateOptions {
 
         public float AddConnection, RemoveConnection, AdjustWeight, AddRecurrentConnection, ToggleConnection;
