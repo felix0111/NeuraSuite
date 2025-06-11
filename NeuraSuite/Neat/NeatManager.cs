@@ -164,7 +164,7 @@ namespace NeuraSuite.Neat {
             var speciesOffspring = new List<Tuple<Species, int>>();
 
             //calculate the average fitness of all species
-            var averageFitnesses = Species.Where(o => o.Members.Count > 0 && !o.IsStagnant(NeatOptions.StagnationThreshold)).ToDictionary(species => species, species => species.AverageFitness);
+            var averageFitnesses = Species.Where(o => o.Members.Count > 0 && !o.IsStagnant(NeatOptions.SpeciesStagnationThreshold)).ToDictionary(species => species, species => species.AverageFitness);
 
             //if the whole population is not improving, only take top 2 species
             if (_stagnationCounter > 20) averageFitnesses = averageFitnesses.OrderByDescending(o => o.Value).Take(2).ToDictionary();

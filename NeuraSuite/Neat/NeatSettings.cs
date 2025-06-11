@@ -26,14 +26,14 @@
         /// The amount of generations a species fitness can not improve before it counts as stagnant.
         /// When a species counts as stagnant, it might not produce any offspring. 
         /// </summary>
-        public int StagnationThreshold = 100;
+        public int SpeciesStagnationThreshold = 100;
 
-        public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int stagnationThreshold) {
+        public NeatSettings(int targetPopulationSize, double removeWorstPercentage, double crossoverChance, double enableChance, int speciesStagnationThreshold) {
             TargetPopulationSize = targetPopulationSize;
             RemoveWorstPercentage = removeWorstPercentage;
             CrossoverChance = crossoverChance;
             EnableChance = enableChance;
-            StagnationThreshold = stagnationThreshold;
+            SpeciesStagnationThreshold = speciesStagnationThreshold;
         }
     }
 }
