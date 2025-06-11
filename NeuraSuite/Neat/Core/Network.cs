@@ -54,6 +54,11 @@ namespace NeuraSuite.Neat.Core {
         public double GetValue(int nodeId) => _nodeValues.TryGetValue(nodeId, out var value) ? value : 0D;
 
         /// <summary>
+        /// Returns true if the node is used in the evaluation.
+        /// </summary>
+        public bool IsNodeUsed(int nodeId) => _nodeValues.ContainsKey(nodeId);
+
+        /// <summary>
         /// Feed-Forward all node-values and activate all nodes (except input nodes).
         /// </summary>
         /// <param name="passes">The amount of times the Feed-Forward process is done. Used to reduce signal delay in larger networks.</param>
