@@ -177,7 +177,7 @@ namespace NeuraSuite.NeatExpanded {
             bool temp = _allowUselessHidden;
             _allowUselessHidden = true;
 
-            RemoveConnection(con.InnovationID);
+            ToggleConnection(con.InnovationID, false);
             AddConnection(neat.NewInnovation(con.SourceID, newNeuron.ID), con.SourceID, newNeuron.ID, con.Weight);
             AddConnection(neat.NewInnovation(newNeuron.ID, con.TargetID), newNeuron.ID, con.TargetID, 1f);
 
