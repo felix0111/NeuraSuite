@@ -264,16 +264,21 @@ namespace NeuraSuite.NeatExpanded {
             return InnovationCollection.Count-1;
         }
 
+        /// <summary>
+        /// Calculates the amount of offspring each species becomes.
+        /// Returns list of (speciesID, amount)
+        /// </summary>
         public List<(int, int)> GetOffspringAmount(int targetPopulationSize) {
             var offspring = new List<(int, int)>();
 
-            double globalFitnessSum = Species.Values.Sum(o => o.AllNetworks.Values.Sum(n => SpeciationOptions.UseAdjustedFitness ? n.Fitness / o.AllNetworks.Count : n.Fitness));
+            //sum all average fitnesses
+            double globalFitnessSum = Species.Values.Sum(o => o.AverageFitness(SpeciationOptions.UseAdjustedFitness, false));
 
+            //calculate offspring amount of each species
             foreach (var species in Species.Values) {
-                double localFitnessSum = species.AllNetworks.Values.Sum(o => SpeciationOptions.UseAdjustedFitness ? o.Fitness / species.AllNetworks.Count : o.Fitness);
-
+                //exlude elite amount from targeted population size
                 int eliteCount = Species.Values.Count(o => o.AllNetworks.Count > 5);
-                int amount = (int)Math.Round(localFitnessSum / globalFitnessSum * (targetPopulationSize - eliteCount));
+                int amount = (int)Math.Round(species.AverageFitness(SpeciationOptions.UseAdjustedFitness, false) / globalFitnessSum * (targetPopulationSize - eliteCount));
 
                 offspring.Add((species.SpeciesID, amount));
             }
