@@ -83,34 +83,6 @@ namespace NeuraSuite.NeatExpanded {
         }
 
         /// <summary>
-        /// Used to create a population with only the best x networks of this species where the amount of different networks is defined by <see cref="networkVariety"/>.
-        /// <br/>
-        /// When every fitness is 0, returns empty list otherwise returns a list of tuples: (network ID, amount)
-        /// </summary>
-        /// <param name="targetPopulationSize">The total amount of networks in the new population.</param>
-        /// <param name="networkVariety">
-        /// How many of the first best networks are used to create the new population.
-        /// Basically determines the variety of networks in the new population.
-        /// </param>
-        public List<(int, int)> CreateSpeciesPopulation(int targetPopulationSize, int networkVariety) {
-
-            //take the best x networks with x = eliteCount (maximum is targetSpeciesSize)
-            List<(int, int)> newArr = new List<(int, int)>();
-            var orderedAndReduced = AllNetworks.OrderByDescending(o => o.Value.Fitness).Take(Math.Min(targetPopulationSize, networkVariety)).ToArray();
-
-            //sum fitness of all selected networks
-            float fitnessSum = orderedAndReduced.Sum(o => o.Value.Fitness);
-            if (fitnessSum == 0) return newArr;
-
-            //linearly scales the fitness of each selected network to the targetSpeciesSize
-            foreach (var network in orderedAndReduced) {
-                newArr.Add((network.Key, (int) Math.Round((network.Value.Fitness / fitnessSum) * targetPopulationSize)));
-            }
-
-            return newArr;
-        }
-
-        /// <summary>
         /// Gets a random member. Networks with higher fitness have a higher chance.
         /// </summary>
         public Network RandomByFitness(Random r) {
