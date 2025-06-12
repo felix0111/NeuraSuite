@@ -77,7 +77,7 @@ namespace NeuraSuite.Neat {
 
                 //select new representative by selecting a random member excluding worst members
                 //must be called before speciation
-                species.Representative = EntirePopulation.MinBy(o => Core.Species.Distance(species.Representative, o, SpeciationSettings.ExcessFactor, SpeciationSettings.DisjointFactor, SpeciationSettings.WeightFactor));
+                species.Representative = species.Members[_random.Next(species.Members.Count)];
             }
 
             //create new population
