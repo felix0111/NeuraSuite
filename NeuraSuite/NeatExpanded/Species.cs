@@ -65,7 +65,6 @@ namespace NeuraSuite.NeatExpanded {
         /// </summary>
         /// <param name="useAdjFitness">If true, penalizes larger species and gives smaller ones an advantage.</param>
         /// <param name="median">If true, might filter out statistical outliers much better.</param>
-        // TODO median needs more testing
         public float AverageFitness(bool useAdjFitness, bool median) {
             if (AllNetworks.Count == 0) return 0f;
 
@@ -73,12 +72,9 @@ namespace NeuraSuite.NeatExpanded {
             if (median) {
                 //calculate median, order by fitness and select the network in the middle
                 val = AllNetworks.OrderByDescending(o => o.Value.Fitness).ElementAt( (int)Math.Ceiling(AllNetworks.Count / 2f) - 1).Value.Fitness;
+                if(useAdjFitness) val /= AllNetworks.Count;
             } else {
-                //calculate average, sum all (adjusted) fitness and divide by number of networks
-                foreach (var network in AllNetworks) {
-                    val += useAdjFitness ? network.Value.Fitness / AllNetworks.Count : network.Value.Fitness;
-                }
-                val /= AllNetworks.Count;
+                val = AllNetworks.Average(o => useAdjFitness ? o.Value.Fitness / AllNetworks.Count : o.Value.Fitness);
             }
 
             if(val > BestAverageFitness) BestAverageFitness = val;  //update best average fitness of this species
