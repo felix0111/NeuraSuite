@@ -162,18 +162,7 @@ namespace NeuraSuite.NeatExpanded {
         public float WeightFactor;
 
         /// <summary>
-        /// Determines how many species are allowed.
-        /// <br/> <br/>
-        /// A value between <code>1</code> and <code>total amount of networks</code> is suggested.
-        /// A higher value may give bad performing species an advantage.
-        /// </summary>
-        // TODO this does not really have anything to do with speciation, only used by CreatePopulation, move to population class in future
-        public int MaxSpeciesPerPopulation;
-
-        /// <summary>
         /// When true, penalizes larger species and gives smaller ones an advantage.
-        /// <br/> <br/>
-        /// Set to true if you want to give species with low average fitness an advantage when creating new populations with <see cref="Neat.CreatePopulation"/>.
         /// </summary>
         // TODO move variable to another place?
         public bool UseAdjustedFitness;
@@ -181,13 +170,11 @@ namespace NeuraSuite.NeatExpanded {
         /// <param name="disjointFactor"><inheritdoc cref="DisjointFactor"/></param>
         /// <param name="weightFactor"><inheritdoc cref="WeightFactor"/></param>
         /// <param name="compatabilityThreshold"><inheritdoc cref="CompatabilityThreshold"/></param>
-        /// <param name="maxSpeciesPerPopulation"><inheritdoc cref="MaxSpeciesPerPopulation"/></param>
         /// <param name="useAdjustedFitness"><inheritdoc cref="UseAdjustedFitness"/></param>
-        public SpeciationOptions(float disjointFactor = 1f, float weightFactor = 0f, float compatabilityThreshold = 0.3f, int maxSpeciesPerPopulation = 10, bool useAdjustedFitness = false) {
+        public SpeciationOptions(float disjointFactor = 1f, float weightFactor = 0f, float compatabilityThreshold = 0.3f, bool useAdjustedFitness = false) {
             DisjointFactor = disjointFactor;
             WeightFactor = weightFactor;
             CompatabilityThreshold = compatabilityThreshold;
-            MaxSpeciesPerPopulation = maxSpeciesPerPopulation;
             UseAdjustedFitness = useAdjustedFitness;
         }
     }

@@ -13,7 +13,7 @@ namespace TestProject
         //DefaultActivationFunction is not specified because we use RandomDefaultActivationFunction
         private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.07f, 0.7f, 0.01f, 0.03f, 0.03f, 0.05f, default, ActivationFunctionPool, true);
 
-        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 1f, 20, true);
+        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 1f, true);
 
         public static void RunTest() {
 

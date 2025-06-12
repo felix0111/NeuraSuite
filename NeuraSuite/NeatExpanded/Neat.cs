@@ -264,44 +264,6 @@ namespace NeuraSuite.NeatExpanded {
             return InnovationCollection.Count-1;
         }
 
-        /// <summary>
-        /// Returns a list of tuple: (speciesID, newPopSize). This is used to determine the size of each species in a new population.
-        /// <see cref="Neat.SpeciationOptions.MaxSpeciesPerPopulation"/> determines the maximum variety of species in the new population.
-        /// <br/>
-        /// Each network must have a <see cref="Network.Fitness"/> value.
-        /// </summary>
-        /// <param name="targetNetworkAmount">The targeted total amount of networks in all species.</param>
-        /// <param name="spreadFactor">
-        /// spreadFactor = 1, species fitness is linear scaled to targetNetworkAmount <br/>
-        /// spreadFactor &gt; 1, species with higher fitness are much bigger compared to species with lower fitness <br/>
-        /// spreadFactor &lt; 1, species with higher fitness have a smaller amount-wise advantage compared to species with lower fitness <br/>
-        /// </param>
-        // TODO use median instead of average?
-        public List<(int, int)> CreatePopulation(int targetNetworkAmount, int spreadFactor) {
-            //calculate the average fitness of each species
-            List<(int, float)> speciesFitnessPair = Species.Select(o => (o.Key, o.Value.AverageFitness(SpeciationOptions.UseAdjustedFitness, false))).OrderByDescending(o => o.Item2).ToList();
-            
-            //only take the best x species determined by MaxSpecies parameter
-            speciesFitnessPair = speciesFitnessPair.Take(SpeciationOptions.MaxSpeciesPerPopulation).ToList();
-
-            //calculate the sum of the network distribution factors, used for normalizing the distribution factors
-            float sum = speciesFitnessPair.Sum(o => (float)Math.Pow(o.Item2, spreadFactor));
-
-            //if all species have a average fitness of 0, equal distribution
-            if (sum == 0) return speciesFitnessPair.Select(o => (o.Item1, targetNetworkAmount / speciesFitnessPair.Count)).ToList();
-
-            //normalize network distribution factor to values 0-1, so we can multiply by targetNetworkAmount
-            //normalization formula: fitness^spread / sum(fitness^spread)
-            //tuple structure: (speciesID, normalized network dist. factor * targetNetworkAmount)
-            List<(int, int)> result = new List<(int, int)>();
-            foreach (var tuple in speciesFitnessPair) {
-                int newAmount = (int)(Math.Pow(tuple.Item2, spreadFactor) / sum * targetNetworkAmount);
-                result.Add((tuple.Item1, newAmount));
-            }
-
-            return result;
-        }
-
         public List<(int, int)> GetOffspringAmount(int targetPopulationSize) {
             var offspring = new List<(int, int)>();
 
