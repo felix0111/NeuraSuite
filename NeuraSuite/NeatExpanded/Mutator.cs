@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace NeuraSuite.NeatExpanded {
     public static class Mutator {
@@ -29,7 +25,7 @@ namespace NeuraSuite.NeatExpanded {
             //Add connection
             if (neat.Random.NextDouble() <= options.AddConnection) {
                 if (!network.ExistsConnection(rndStart, rndEnd)) {
-                    network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, (float)neat.Random.RandomWeight(4D));
+                    network.AddConnection(neat.NewInnovation(rndStart, rndEnd), rndStart, rndEnd, (float)neat.Random.RandomWeight());
                 }
             }
             
@@ -60,7 +56,7 @@ namespace NeuraSuite.NeatExpanded {
                 //Adjust weight
                 if (neat.Random.NextDouble() <= options.AdjustWeight && network.Connections.Count != 0) {
                     //weight is adjusted by value between -1f and +1f with the resulting weight clamped between -4f and 4f
-                    network.ChangeWeight(connection.InnovationID, Utility.Clamp(-4f, 4f, connection.Weight + (float)neat.Random.RandomWeight(0.5)));
+                    network.ChangeWeight(connection.InnovationID, Utility.Clamp(-4f, 4f, connection.Weight + (float)neat.Random.RandomWeight(options.WeightAdjustmentMagnitude)));
                 }
 
                 //Toggle connection
@@ -78,9 +74,14 @@ namespace NeuraSuite.NeatExpanded {
     //must be a value between 0 and 1
     public struct MutateOptions {
 
-        public float AddConnection, RemoveConnection, AdjustWeight, ToggleConnection;
-        public float AddNeuron, RemoveNeuron, RandomFunction;
-        
+        public double AddConnection, RemoveConnection, AdjustWeight, ToggleConnection;
+        public double AddNeuron, RemoveNeuron, RandomFunction;
+
+        /// <summary>
+        /// Specifies the maximum magnitude a weight of a connection can change by mutation.
+        /// </summary>
+        public double WeightAdjustmentMagnitude;
+
         /// <summary>
         /// Everytime a mutation creates a new neuron, the activation function is randomly selected from this pool.
         /// <br/>
@@ -95,7 +96,7 @@ namespace NeuraSuite.NeatExpanded {
         public ActivationFunction DefaultActivationFunction;
         public bool RandomDefaultActivationFunction;
 
-        public MutateOptions(float addConnection, float removeConnection, float adjustWeight, float toggleConnection, float addNeuron, float removeNeuron, float randomFunction, ActivationFunction defaultActivationFunction, ActivationFunction[] hiddenActivationFunctionPool, bool randomDefaultActivationFunction) {
+        public MutateOptions(double addConnection, double removeConnection, double adjustWeight, double toggleConnection, double addNeuron, double removeNeuron, double randomFunction, double weightAdjustmentMagnitude, ActivationFunction defaultActivationFunction, ActivationFunction[] hiddenActivationFunctionPool, bool randomDefaultActivationFunction) {
             AddConnection = addConnection;
             RemoveConnection = removeConnection;
             AdjustWeight = adjustWeight;
@@ -103,6 +104,7 @@ namespace NeuraSuite.NeatExpanded {
             AddNeuron = addNeuron;
             RemoveNeuron = removeNeuron;
             RandomFunction = randomFunction;
+            WeightAdjustmentMagnitude = weightAdjustmentMagnitude;
             DefaultActivationFunction = defaultActivationFunction;
 
             HiddenActivationFunctionPool = hiddenActivationFunctionPool;
