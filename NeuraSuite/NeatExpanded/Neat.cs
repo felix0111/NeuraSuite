@@ -193,16 +193,16 @@ namespace NeuraSuite.NeatExpanded {
             foreach (var connection in newNetwork.Connections.Values.ToList()) {
                 newNetwork.RemoveConnection(connection.InnovationID);
                 int newInnov = NewInnovation(connection.SourceID, connection.TargetID);
-                newConns.Add(new Connection(newInnov, connection.SourceID, connection.TargetID, connection.Weight));
+                newConns.Add(new Connection(newInnov, connection.SourceID, connection.TargetID, connection.Weight, connection.Activated));
             }
             foreach (var connection in newNetwork.RecurrentConnections.Values.ToList()) {
                 newNetwork.RemoveConnection(connection.InnovationID);
                 int newInnov = NewInnovation(connection.SourceID, connection.TargetID);
-                newConns.Add(new Connection(newInnov, connection.SourceID, connection.TargetID, connection.Weight));
+                newConns.Add(new Connection(newInnov, connection.SourceID, connection.TargetID, connection.Weight, connection.Activated));
             }
 
             foreach (var connection in newConns) {
-                newNetwork.AddConnection(connection.InnovationID, connection.SourceID, connection.TargetID, connection.Weight);
+                newNetwork.AddConnection(connection.InnovationID, connection.SourceID, connection.TargetID, connection.Weight, connection.Activated);
             }
 
             //set AllowUselessHidden to the value of the template

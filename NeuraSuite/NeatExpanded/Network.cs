@@ -244,11 +244,11 @@ namespace NeuraSuite.NeatExpanded {
         /// </summary>
         /// <returns>The newly created connection. NOT A REFERENCE!</returns>
         // TODO improve handling when a connection already exists, maybe exception? or use "out bool success"?
-        public Connection AddConnection(int innovID, int sourceID, int targetID, float weight) {
+        public Connection AddConnection(int innovID, int sourceID, int targetID, float weight, bool activated = true) {
             //probably not necessary to check by neuron IDs AND innovation ID, one should be enough
             if (this.ExistsConnection(sourceID, targetID) || this.ExistsConnection(innovID)) return new Connection(-1, -1, -1, -1);
 
-            Connection newConnection = new Connection(innovID, sourceID, targetID, weight);
+            Connection newConnection = new Connection(innovID, sourceID, targetID, weight, activated);
 
             //recurrent connections are handled differently
             if (this.CheckRecurrent(sourceID, targetID)) {
