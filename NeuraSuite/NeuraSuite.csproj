@@ -4,6 +4,11 @@
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>NeuraSuite</RootNamespace>
+    <Title>$(AssemblyName)</Title>
+    <Authors>felix0111</Authors>
+    <Description>A library for creating and optimizing neural networks based on neuroevolution (NEAT algorithm).</Description>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <PackageTags>neural;network;neat;training;simulation;</PackageTags>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <OutputPath>bin\x64\Debug\</OutputPath>
@@ -17,23 +22,4 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <None Include="bin\Debug\EasyNNFramework.exe.config" />
-    <None Include="obj\Debug\DesignTimeResolveAssemblyReferencesInput.cache" />
-    <None Include="obj\Debug\EasyNNFramework.csproj.AssemblyReference.cache" />
-    <None Include="obj\Debug\EasyNNFramework.csproj.CoreCompileInputs.cache" />
-    <None Include="obj\Debug\EasyNNFramework.csproj.SuggestedBindingRedirects.cache" />
-    <None Include="obj\Debug\_IsIncrementalBuild" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="bin\Debug\EasyNNFramework.exe" />
-    <Content Include="bin\Debug\EasyNNFramework.pdb" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="bin\Release\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-  </ItemGroup>
 </Project>
