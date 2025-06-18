@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace NeuraSuite.NeatExpanded {
     public static class Mutator {
@@ -52,7 +53,7 @@ namespace NeuraSuite.NeatExpanded {
             }
 
             //mutation of each weight
-            foreach (var connection in network.Connections.Values) {
+            foreach (var connection in network.Connections.Values.ToList()) {
                 //Adjust weight
                 if (neat.Random.NextDouble() <= options.AdjustWeight && network.Connections.Count != 0) {
                     //weight is adjusted by value between -1f and +1f with the resulting weight clamped between -4f and 4f
