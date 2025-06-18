@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Random = System.Random;
 
 namespace NeuraSuite.NeatExpanded {
 
@@ -237,7 +235,7 @@ namespace NeuraSuite.NeatExpanded {
             }
 
             //determine enabled status
-            foreach (var connection in newNetwork.Connections.Values) {
+            foreach (var connection in newNetwork.Connections.Values.ToList()) {
                 bool parent1Disabled = network1.Connections.TryGetValue(connection.InnovationID, out var parent1) && !parent1.Activated;
                 bool parent2Disabled = network2.Connections.TryGetValue(connection.InnovationID, out var parent2) && !parent2.Activated;
 
