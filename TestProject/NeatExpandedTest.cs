@@ -11,9 +11,9 @@ namespace TestProject
         private static readonly ActivationFunction[] ActivationFunctionPool = (ActivationFunction[])Enum.GetValues(typeof(ActivationFunction));
 
         //DefaultActivationFunction is not specified because we use RandomDefaultActivationFunction
-        private static readonly MutateOptions MOptions = new MutateOptions(0.10f, 0.07f, 0.7f, 0.01f, 0.03f, 0.03f, 0.05f, default, ActivationFunctionPool, true);
+        private static readonly MutateOptions MOptions = new MutateOptions(0.10D, 0.07D, 0.7D, 0.00D, 0.03D, 0.03D, 0.05D, 1D, default, ActivationFunctionPool, true);
 
-        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 1f, true);
+        private static readonly SpeciationOptions SOptions = new SpeciationOptions(1, 0f, 1.2f, true);
 
         public static void RunTest() {
 
